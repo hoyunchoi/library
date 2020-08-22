@@ -358,7 +358,6 @@ private:
     //* Maximum Cluster and Second Maximum Cluster
     int m_maximumClusterSize{1};
     int m_secondMaximumClusterSize{1};
-    // bool m_maximumClusterUpdated{false};
     int m_deltaMaximumClusterSize{0};
 
     //* m_parent[node] : parent of each 'node'
@@ -393,7 +392,6 @@ public:
     //* Simple get functions
     int getMaximumClusterSize() const {return m_maximumClusterSize;}
     int getSecondMaximumClusterSize() const {return m_secondMaximumClusterSize;}
-    // bool getMaximumClusterUpdated() const {return m_maximumClusterUpdated;}
     int getClusterSize(const Node &t_root) const {return -m_parent[t_root];}
     int getDeltaMaximumClusterSize() const {return m_deltaMaximumClusterSize;}
     std::vector<std::pair<int,int>> getChangedAge() const {return m_changedAge;}
@@ -456,11 +454,9 @@ public:
         if (m_maximumClusterSize < newSize){
             m_deltaMaximumClusterSize = newSize-m_maximumClusterSize;
             m_maximumClusterSize = newSize;
-            // m_maximumClusterUpdated=true;
         }
         else{
             m_deltaMaximumClusterSize = 0;
-            // m_maximumClusterUpdated=false;
         }
 
         //! find second giant cluster
