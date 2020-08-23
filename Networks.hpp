@@ -10,7 +10,8 @@
 #include <random>
 #include <map>
 #include <fstream>
-#include "../library/pcg_random.hpp"
+
+#include "pcg_random.hpp"
 
 typedef int Node;
 typedef std::pair<Node, double> WNode; //* weighted node
@@ -366,7 +367,7 @@ private:
     //* m_sortedCluster[size] : number of cluster of 'size'
     std::map<int,int> m_sortedCluster;
 
-    //* m_birth[root] : birth time of each 'root' 
+    //* m_birth[root] : birth time of each 'root'
     //* changedAge[root] : {age, size} of cluster with 'root'
     std::vector<Node> m_birth;
     std::vector<std::pair<int, int>> m_changedAge;
@@ -395,7 +396,7 @@ public:
     int getClusterSize(const Node &t_root) const {return -m_parent[t_root];}
     int getDeltaMaximumClusterSize() const {return m_deltaMaximumClusterSize;}
     std::vector<std::pair<int,int>> getChangedAge() const {return m_changedAge;}
-    std::map<int,int> getSortedCluster(const int &excludeNum=1) const 
+    std::map<int,int> getSortedCluster(const int &excludeNum=1) const
     {
         std::map<int,int> result=m_sortedCluster;
 
