@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
+#include <map>
 #include <cmath>
 #include <numeric>
 #include <algorithm>
@@ -452,22 +453,34 @@ std::vector<std::vector<T>> elementProduct(const std::vector<std::vector<T>>& t_
 
 template<typename T>
 std::vector<T> elementTanh(const std::vector<T>& t_vec){
-    const int n=t_vec.size();
-    std::vector<T> result(n);
-    for (int i=0; i<n; ++i){
-        result[i]=tanh(t_vec[i]);
+    std::vector<T> result;
+    result.reserve(t_vec.size());
+    for (const T& e : t_vec){
+        result.emplace_back(tanh(e));
+    }
+    return result;
+}
+
+template<typename T, typename TT>
+std::vector<T> elementPow(const std::vector<T>& t_vec, const TT& c){
+    std::vector<T> result;
+    result.reserve(t_vec.size());
+    for (const T& e : t_vec){
+        result.emplace_back(pow(e,c));
     }
     return result;
 }
 template<typename T, typename TT>
-std::vector<T> elementPow(const std::vector<T>& t_vec, const TT& c){
-    const int n=t_vec.size();
-    std::vector<T> result(n);
-    for (int i=0; i<n; ++i){
-        result[i]=pow(t_vec[i],c);
+std::vector<T> elementPow(const TT& c, const std::vector<T>& t_vec){
+    std::vector<T> result;
+    result.reserve(t_vec.size());
+    for (const T& e : t_vec){
+        result.emplace_back(pow(c, e));
     }
     return result;
 }
+
+
 
 std::vector<double> linspace(const double& t_begin, const double& t_end, const int& t_size){
     std::vector<double> result(t_size);
@@ -486,6 +499,121 @@ std::vector<double> arange(const double& t_begin, const double& t_end, const dou
     }
     result.emplace_back(t_end);
     return result;
+}
+
+
+//! Map Calculation
+//* map += map
+template<typename T, typename TT, typename TTT>
+std::map<T,TT> operator+= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2){
+    for (auto it=t_map2.begin(); it != t_map2.end(); ++it){
+        t_map1[it->first] += it->second;
+    }
+    return t_map1;
+}
+
+//* map -= map
+template<typename T, typename TT, typename TTT>
+std::map<T,TT> operator-= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2){
+    for (auto it=t_map2.begin(); it != t_map2.end(); ++it){
+        t_map1[it->first] -= it->second;
+    }
+    return t_map1;
+}
+
+//* const - map = map
+template<typename T, typename TT>
+std::map<T,TT> minus_first(const T& t_c, const std::map<T,TT>& t_map){
+    std::map<T,TT> result;
+    for (auto it=t_map.begin(); it != t_map.end(); ++it){
+        result[t_c-it->first] = it->second;
+    }
+    return result;
+}
+
+template<typename T, typename TT>
+std::map<T,TT> minus_second(const TT& t_c, const std::map<T,TT>& t_map){
+    std::map<T,TT> result;
+    for (auto it=t_map.begin(); it != t_map.end(); ++it){
+        result[it->first] = t_c-it->second;
+    }
+    return result;
+}
+
+//* map - const = map
+template<typename T, typename TT>
+std::map<T,TT> minus_first(const std::map<T,TT>& t_map, const T& t_c){
+    std::map<T,TT> result;
+    for (auto it=t_map.begin(); it != t_map.end(); ++it){
+        result[it->first-t_c] = it->second;
+    }
+    return result;
+}
+
+template<typename T, typename TT>
+std::map<T,TT> minus_second(const std::map<T,TT>& t_map, const T& t_c){
+    std::map<T,TT> result;
+    for (auto it=t_map.begin(); it != t_map.end(); ++it){
+        result[it->first] = it->second-t_c;
+    }
+    return result;
+}
+
+
+
+//* map *= map
+template<typename T, typename TT, typename TTT>
+std::map<T,TT> operator*= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2){
+    for (auto it=t_map2.begin(); it!=t_map2.end(); ++it){
+        t_map1[it->first] *= it->second;
+    }
+    return t_map1;
+}
+
+
+//* map /= map
+template<typename T, typename TT, typename TTT>
+std::map<T,TT> operator/= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2){
+    for (auto it=t_map2.begin(); it!=t_map2.end(); ++it){
+        t_map1[it->first] /= it->second;
+    }
+    return t_map1;
+}
+
+//* map /= const
+template<typename T, typename TT, typename TTT>
+std::map<T,TT> operator/= (std::map<T,TT>& t_map, const TTT& t_c){
+    for (auto it=t_map.begin(); it != t_map.end(); ++it){
+        it->second /= t_c;
+    }
+    return t_map;
+}
+
+
+
+//* plus 1 to the 'value' of t_map1['key'] for every 'key' inside t_map2
+template<typename T, typename TT>
+void sampleNum(std::map<T,int>& t_map1, const std::map<T,TT>& t_map2){
+    for (auto it=t_map1.begin(); it!=t_map1.end(); ++it){
+        ++t_map1[it->first];
+    }
+}
+
+//* sum all values of Map
+template<typename T, typename TT>
+TT accumulate(std::map<T,TT>& t_map){
+    TT result = std::accumulate(t_map.begin(), t_map.end(), 0, [](const TT previous, const auto& element){return previous + element.second;});
+    return result;
+}
+
+//* print map
+template<typename T, typename TT>
+void print(const std::map<T,TT>& t_map){
+    std::cout<<"[";
+    for (auto it=t_map.begin(); it != t_map.end(); ++it){
+        std::cout<<"("<<it->first<<", "<<it->second<<"), ";
+    }
+    std::cout<<"]\n";
 }
 
 }//* End of namespace linearAlgebra

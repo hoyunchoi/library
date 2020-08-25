@@ -52,7 +52,7 @@ void readCSV(const std::string& readfilename, std::vector<T>& data){
     data.clear();
     std::string row;
     while(getline(readfile,row)){
-        data.push_back(std::stod(row));
+        data.emplace_back(std::stod(row));
     }
 }
 
@@ -69,9 +69,9 @@ void readCSV(const std::string& readfilename, std::vector<std::vector<double>>& 
         std::stringstream rowstream(row);
         rowvector.clear();
         while(getline(rowstream, column,',')){
-            rowvector.push_back(std::stod(column));
+            rowvector.emplace_back(std::stod(column));
         }
-        data.push_back(rowvector);
+        data.emplace_back(rowvector);
     }
 }
 
@@ -87,7 +87,7 @@ void readCSV(const std::string& readfilename, std::map<T,TT>& data){
     while(getline(readfile,row)){
         std::stringstream rowstream(row);
         int i=0;
-        while(getline(rowstream, value,',')){    
+        while(getline(rowstream, value,',')){
             if (i%2==1){
                 data[std::stod(key)]=std::stod(value);
             }
@@ -97,5 +97,3 @@ void readCSV(const std::string& readfilename, std::map<T,TT>& data){
     }
 
 }
-
-
