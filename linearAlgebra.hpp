@@ -594,7 +594,7 @@ std::map<T,TT> operator/= (std::map<T,TT>& t_map, const TTT& t_c){
 //* plus 1 to the 'value' of t_map1['key'] for every 'key' inside t_map2
 template<typename T, typename TT>
 void sampleNum(std::map<T,int>& t_map1, const std::map<T,TT>& t_map2){
-    for (auto it=t_map1.begin(); it!=t_map1.end(); ++it){
+    for (auto it=t_map2.begin(); it!=t_map2.end(); ++it){
         ++t_map1[it->first];
     }
 }
@@ -602,7 +602,10 @@ void sampleNum(std::map<T,int>& t_map1, const std::map<T,TT>& t_map2){
 //* sum all values of Map
 template<typename T, typename TT>
 TT accumulate(std::map<T,TT>& t_map){
-    TT result = std::accumulate(t_map.begin(), t_map.end(), 0, [](const TT previous, const auto& element){return previous + element.second;});
+    TT result = 0;
+    for (auto it=t_map.begin(); it != t_map.end(); ++it){
+        result += it->second;
+    }
     return result;
 }
 
