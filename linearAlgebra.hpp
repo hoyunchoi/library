@@ -480,8 +480,7 @@ std::vector<T> elementPow(const TT& c, const std::vector<T>& t_vec){
     return result;
 }
 
-
-
+//* Include t_begin, t_end
 std::vector<double> linspace(const double& t_begin, const double& t_end, const int& t_size){
     std::vector<double> result(t_size);
     const double delta = (t_end-t_begin)/(t_size-1);
@@ -491,6 +490,7 @@ std::vector<double> linspace(const double& t_begin, const double& t_end, const i
     return result;
 }
 
+//* Include t_begin, t_end
 std::vector<double> arange(const double& t_begin, const double& t_end, const double& t_delta){
     int size = std::ceil((t_end-t_begin)/t_delta);
     std::vector<double> result(size);
