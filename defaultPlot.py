@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 
@@ -54,7 +54,8 @@ new_rc_params = {
     'savefig.bbox' : 'tight',
     'savefig.format' : 'pdf'
 }
-matplotlib.rcParams.update(new_rc_params)
+
+mpl.rcParams.update(new_rc_params)
 
 #* log-log scale linear fitting of (x,y). output two points at x=xFit[0], xFit[1] including offset
 #* return xFit, yFit, gradient, residual
