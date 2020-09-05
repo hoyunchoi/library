@@ -6,6 +6,7 @@
 #include <map>
 #include <iomanip>
 #include <iterator>
+#include <iostream>
 
 //Write CSV file
 template<typename T, typename TT>
