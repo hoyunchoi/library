@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <iterator>
 #include <iostream>
+#include <cstdio>
 
 //Write CSV file
 template<typename T, typename TT>
@@ -97,4 +98,10 @@ void readCSV(const std::string& readfilename, std::map<T,TT>& data){
         }
     }
 
+}
+
+void removeFile(const std::string& t_removeFileName){
+    if (std::remove(t_removeFileName.c_str())){
+        std::cout<<"Error in removing "<<t_removeFileName<<"\n";
+    }
 }
