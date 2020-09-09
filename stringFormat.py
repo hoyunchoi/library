@@ -4,8 +4,10 @@ def latexString(t_string):
     return "$" + t_string + "$"
 
 def latexSci(t_value):
-    exponent = int(np.log10(t_value))
-    residual = int(np.power(10, np.log10(t_value)-exponent))
+    if (t_value==0):
+        return ""
+    exponent = int(np.floor(np.log10(t_value)))
+    residual = int(np.floor(np.power(10, np.log10(t_value)-exponent)))
     if (residual == 1):
         return "$10^{" + str(exponent) + "}$"
     else:
@@ -30,12 +32,18 @@ def list_latexFloat(list_value, digit=None):
         result = np.append(result, latexFloat(t_value, digit))
     return result
 
+def list_latexString(list_string):
+    result = np.array([])
+    for string in list_string:
+        result = np.append(result, latexString(string))
+    return result
+
 def latexBoldString(t_string):
     return "$\\boldsymbol{" + t_string + "}$"
 
 def latexBoldSci(t_value):
-    exponent = int(np.log10(t_value))
-    residual = int(np.power(10, np.log10(t_value)-exponent))
+    exponent = int(np.floor(np.log10(t_value)))
+    residual = int(np.floor(np.power(10, np.log10(t_value)-exponent)))
     if (residual == 1):
         return "$\\boldsymbol{10^{" + str(exponent) + "}}$"
     else:
@@ -51,13 +59,19 @@ def latexBoldFloat(t_value, digit=None):
 def list_latexBoldSci(list_value):
     result = np.array([])
     for t_value in list_value:
-        result = np.append(result, latexSci(t_value))
+        result = np.append(result, latexBoldSci(t_value))
     return result
 
 def list_latexBoldFloat(list_value, digit=None):
     result = np.array([])
     for t_value in list_value:
-        result = np.append(result, latexFloat(t_value, digit))
+        result = np.append(result, latexBoldFloat(t_value, digit))
+    return result
+
+def list_latexBoldString(list_string):
+    result = np.array([])
+    for string in list_string:
+        result = np.append(result, latexBoldString(string))
     return result
 
 if __name__=="__main__":
