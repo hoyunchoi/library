@@ -365,7 +365,7 @@ private:
     std::vector<Node> m_parent;
 
     //* m_sortedCluster[size] : number of cluster of 'size'
-    std::map<int,int> m_sortedCluster;
+    std::map<int, int> m_sortedCluster;
 
     //* m_birth[root] : birth time of each 'root'
     //* changedAge[root] : {age, size} of cluster with 'root'
@@ -392,23 +392,10 @@ public:
 
     //* Simple get functions
     int getMaximumClusterSize() const {return m_maximumClusterSize;}
-    int getSecondMaximumClusterSize() const {return m_secondMaximumClusterSize;}
     int getClusterSize(const Node &t_root) const {return -m_parent[t_root];}
     int getDeltaMaximumClusterSize() const {return m_deltaMaximumClusterSize;}
     std::vector<std::pair<int,int>> getChangedAge() const {return m_changedAge;}
-    std::map<int,int> getSortedCluster(const int &excludeNum=1) const
-    {
-        std::map<int,int> result=m_sortedCluster;
 
-        //! exclude maximum cluster
-        --result[m_maximumClusterSize];
-
-        //! exclude second giant
-        if (excludeNum-1){
-            --result[m_secondMaximumClusterSize];
-        }
-        return result;
-    }
 
     //* get the root of input node
     Node getRoot(const Node &t_node){
@@ -460,16 +447,40 @@ public:
             m_deltaMaximumClusterSize = 0;
         }
 
-        //! find second giant cluster
-        for (auto it=m_sortedCluster.rbegin(); it!=m_sortedCluster.rend(); ++it){
-            if (it->first!=m_maximumClusterSize || it->second>1){
-                m_secondMaximumClusterSize=it->first;
+    }
+
+    //* Calculate second Maximum Cluster Size
+    void processSecondMaximumClusterSize(){
+        for (auto it=m_sortedCluster.rbegin(); it != m_sortedCluster.rend(); ++it){
+            if (it->first != m_maximumClusterSize || it->second>1){
+                m_secondMaximumClusterSize = it->first;
                 break;
             }
         }
     }
 
-    //* Mean cluster size
+    //* Get second Maximum Cluster Size
+    int getSecondMaximumClusterSize(){
+        processSecondMaximumClusterSize();
+        return m_secondMaximumClusterSize;
+    }
+
+    //* Get sorted Cluster
+    std::map<int,int> getSortedCluster(const int &excludeNum=1){
+        std::map<int,int> result=m_sortedCluster;
+
+        //! exclude maximum cluster
+        --result[m_maximumClusterSize];
+
+        //! exclude second giant
+        if (excludeNum-1){
+            processSecondMaximumClusterSize();
+            --result[m_secondMaximumClusterSize];
+        }
+        return result;
+    }
+
+    //* Get Mean cluster size
     double getMeanClusterSize() const{
         const int firstMoment = m_size-m_maximumClusterSize;
         double secondMoment = 0;
@@ -481,6 +492,7 @@ public:
 
         return secondMoment/firstMoment;
     }
+
 };
 
 
