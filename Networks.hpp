@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <deque>
+#include <cmath>
 #include <set>
 #include <utility> //* pair
 #include <algorithm>
@@ -93,7 +94,6 @@ struct Network
         if (t_outFileName == "temp.txt"){
             for (auto it = degreeDistribution.begin(); it != degreeDistribution.end(); ++it)
             {
-                // std::cout<<"("<<it->first<<","<<it->second<<"),";
                 std::cout << it->first << "," << it->second << "\n";
             }
         }
@@ -300,12 +300,13 @@ public:
             m_adjacentMatrix[node1].insert(node2);
             m_adjacentMatrix[node2].insert(node1);
         }
+
+        m_linkSize = m_size*m_meanDegree/2;
     }
 }; //* End of struct RR_Network
 
 //* Static scale free network with Robin hood Algorithm
-struct SF_Network : public Network
-{
+struct SF_Network : public Network{
 private:
     //* Member variables
     double m_degreeExponent;
@@ -316,18 +317,18 @@ public:
         : Network(t_size), m_degreeExponent(t_degreeExponent)
     {
         m_randomEngine.seed((std::random_device())());
-        generate(t_linkSize, t_degreeExponent);
+        generate(t_linkSize);
     }
 
     SF_Network(const int &t_size, const int &t_linkSize, const double &t_degreeExponent, const pcg32 &t_randomEngine)
         : Network(t_size), m_degreeExponent(t_degreeExponent)
     {
         m_randomEngine = t_randomEngine;
-        generate(t_linkSize, t_degreeExponent);
+        generate(t_linkSize);
     }
 
     //* Generator
-    void generate(const int &t_linkSize, const double &t_degreeExponent)
+    void generate(const int &t_linkSize)
     {
         const double weightExponent = 1.0 / (m_degreeExponent - 1.0);
         while (m_linkSize < t_linkSize)
@@ -348,6 +349,55 @@ public:
         return std::pow((std::pow(t_upper + 0.5, t_exponent + 1) - std::pow(t_lower - 0.5, t_exponent + 1)) * realDistribution(m_randomEngine) + std::pow(t_lower - 0.5, t_exponent + 1), 1.0 / (t_exponent + 1)) + 0.5;
     }
 }; //* End of struct SF_Network
+
+//* Scale free network with Chung Lu Algorithm
+struct CL_Network : public Network{
+private:
+    double m_alpha;
+    std::vector<double> m_weight;
+
+public:
+    //* Constructor
+    CL_Network(const int& t_size, const int& t_linkSize, const double& t_degreeExponent)
+        : Network(t_size)
+    {
+        m_randomEngine.seed((std::random_device())());
+        m_alpha = 1.0/(t_degreeExponent-1.0);
+        generate(t_linkSize);
+
+    }
+
+    CL_Network(const int& t_size, const int& t_linkSize, const double& t_degreeExponent, const pcg32& t_randomEngine)
+        : Network(t_size)
+    {
+        m_randomEngine = t_randomEngine;
+        m_alpha = 1.0/(t_degreeExponent-1.0);
+        generate(t_linkSize);
+    }
+
+    void generate(const int& t_linkSize){
+        const double correction = m_alpha < 0.5 ? 1.0 : std::pow(10.0*std::sqrt(2.0)*(1.0-m_alpha), 1.0/m_alpha) * std::pow(m_size, 1.0-1.0/(2.0-m_alpha));
+        m_weight.assign(m_size, 0.0);
+        m_weight[0] = std::pow(correction, -1.0*m_alpha);
+
+        for (int i=1; i<m_size; ++i){
+            m_weight[i] = m_weight[i-1]+std::pow(i+correction, -1.0*m_alpha);
+        }
+        std::uniform_real_distribution<double> realDistribution(0, 1);
+        while (m_linkSize < t_linkSize){
+            Node node1, node2;
+            do {
+                node1 = weightSampling(realDistribution(m_randomEngine));
+                node2 = weightSampling(realDistribution(m_randomEngine));
+            } while (node1 == node2);
+            addLink(node1, node2);
+        }
+    }
+
+    Node weightSampling(const double& t_prob){
+        return (Node) (std::lower_bound(m_weight.begin(), m_weight.end(), t_prob*m_weight.back())-m_weight.begin());
+    }
+};//* End of struct CL_Network
 
 //* Network class with merging cluster by Newman-Ziff algorithm
 struct NZ_Network{
