@@ -601,7 +601,7 @@ void sampleNum(std::map<T,int>& t_map1, const std::map<T,TT>& t_map2){
 
 //* sum all values of Map
 template<typename T, typename TT>
-TT accumulate(std::map<T,TT>& t_map){
+TT accumulate(const std::map<T,TT>& t_map){
     TT result = 0;
     for (auto it=t_map.begin(); it != t_map.end(); ++it){
         result += it->second;
