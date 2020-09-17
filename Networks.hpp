@@ -137,7 +137,7 @@ struct Network
 
 //* Erdos-Renyi network
 namespace ER{
-    Network generate(const int& t_size, const double& t_probability, const pcg32& t_randomEngine){
+    Network generate(const int& t_size, const double& t_probability, pcg32& t_randomEngine){
         Network ER(t_size);
         std::uniform_real_distribution<double> probabilityDistribution(0, 1);
         for (Node node1 = 0; node1 < ER.size(); ++node1){
@@ -150,7 +150,7 @@ namespace ER{
         return ER;
     }
 
-    Network generate(const int& t_size, const int& t_linkSize, const pcg32& t_randomEngine){
+    Network generate(const int& t_size, const int& t_linkSize, pcg32& t_randomEngine){
         Network ER(t_size);
         std::uniform_int_distribution<int> nodeDistribution(0, ER.size() - 1);
         while (ER.linkSize() < t_linkSize){
@@ -166,7 +166,7 @@ namespace ER{
 }//* End of namespace ER
 
 namespace RR{
-    Network generate(const int& t_size, const int& t_meanDegree, const pcg32& t_randomEngine){
+    Network generate(const int& t_size, const int& t_meanDegree, pcg32& t_randomEngine){
         Network RR(t_size);
         std::deque<int> stubs;
         for (Node node=0; node<RR.size(); ++node){
@@ -193,7 +193,7 @@ namespace SF{
         return std::pow((std::pow(t_upper + 0.5, t_exponent + 1) - std::pow(t_lower - 0.5, t_exponent + 1)) * t_prob + std::pow(t_lower - 0.5, t_exponent + 1), 1.0 / (t_exponent + 1)) + 0.5;
     }
 
-    Network generate(const int& t_size, const int& t_linkSize, const double& t_degreeExponent, const pcg32& t_randomEngine){
+    Network generate(const int& t_size, const int& t_linkSize, const double& t_degreeExponent, pcg32& t_randomEngine){
         Network SF(t_size);
         const double weightExponent = 1.0/(t_degreeExponent-1.0);
         std::uniform_real_distribution<double> realDistribution(0.0, 1.0);
@@ -214,7 +214,7 @@ namespace CL{
         return (Node) (std::lower_bound(t_weight.begin(), t_weight.end(), t_prob*t_weight.back())-t_weight.begin());
     }
 
-    Network generate(const int& t_size, const int& t_linkSize, const double& t_degreeExponent, const pcg32& t_randomEngine){
+    Network generate(const int& t_size, const int& t_linkSize, const double& t_degreeExponent, pcg32& t_randomEngine){
         Network CL(t_size);
         const double weightExponent = 1.0/(t_degreeExponent-1.0);
         const double correction = weightExponent < 0.5 ? 1.0 : std::pow(10.0*std::sqrt(2.0)*(1.0-weightExponent), 1.0/weightExponent) * std::pow(CL.size(), 1.0-1.0/(2.0-weightExponent));
