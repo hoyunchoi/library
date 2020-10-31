@@ -7,7 +7,7 @@ def latexSci(t_value):
     if (t_value==0):
         return ""
     exponent = int(np.floor(np.log10(t_value)))
-    residual = int(np.floor(np.power(10, np.log10(t_value)-exponent)))
+    residual = round(np.power(10.0, np.log10(t_value)-exponent), 10)
     if (residual == 1):
         return "$10^{" + str(exponent) + "}$"
     else:
@@ -43,7 +43,7 @@ def latexBoldString(t_string):
 
 def latexBoldSci(t_value):
     exponent = int(np.floor(np.log10(t_value)))
-    residual = int(np.floor(np.power(10, np.log10(t_value)-exponent)))
+    residual = round(np.power(10.0, np.log10(t_value)-exponent), 10)
     if (residual == 1):
         return "$\\boldsymbol{10^{" + str(exponent) + "}}$"
     else:

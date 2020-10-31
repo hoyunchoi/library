@@ -13,64 +13,64 @@
 namespace CSV{
     //* Write
     template<typename T, typename TT>
-    void write(const std::string& outfilename, const std::map<T,TT>& data, const int& precision=0){
-        std::ofstream outfile(outfilename);
+    void write(const std::string& writeFileName, const std::map<T,TT>& data, const int& precision=0){
+        std::ofstream outFile(writeFileName);
         if (precision){
-            outfile.precision(precision);
+            outFile.precision(precision);
         }
         for (auto& row : data){
-            outfile<<row.first<<","<<row.second<<"\n";
+            outFile<<row.first<<","<<row.second<<"\n";
         }
     }
 
     template<typename T>
-    void write(const std::string &outfilename, const std::vector<T>&data, const int& precision=0){
-        std::ofstream outfile(outfilename);
+    void write(const std::string &writeFileName, const std::vector<T>&data, const int& precision=0){
+        std::ofstream outFile(writeFileName);
         if (precision){
-            outfile.precision(precision);
+            outFile.precision(precision);
         }
-        std::copy(data.begin(), data.end(), std::ostream_iterator<T>(outfile,"\n"));
+        std::copy(data.begin(), data.end(), std::ostream_iterator<T>(outFile,"\n"));
     }
 
     template<typename T>
-    void write(const std::string outfilename, const std::vector<std::vector<T>>& data, const int& precision=0){
-        std::ofstream outfile(outfilename);
+    void write(const std::string writeFileName, const std::vector<std::vector<T>>& data, const int& precision=0){
+        std::ofstream outFile(writeFileName);
         if (precision){
-            outfile.precision(precision);
+            outFile.precision(precision);
         }
         for (auto &row : data){
-            std::copy(row.begin(), row.end(), std::ostream_iterator<T>(outfile,","));
-            outfile<<"\n";
+            std::copy(row.begin(), row.end(), std::ostream_iterator<T>(outFile,","));
+            outFile<<"\n";
         }
     }
 
 
     //* Read
     template<typename T>
-    void read(const std::string& readfilename, std::vector<T>& data){
-        std::ifstream readfile(readfilename);
-        if (readfile.fail()){
-            std::cout<<"No such file : "<<readfilename<<std::endl;
+    void read(const std::string& readFileName, std::vector<T>& data){
+        std::ifstream readFile(readFileName);
+        if (readFile.fail()){
+            std::cout<<"No such file : "<<readFileName<<std::endl;
             exit(1);
         }
         data.clear();
         std::string row;
-        while(getline(readfile,row)){
+        while(getline(readFile,row)){
             data.emplace_back(std::stod(row));
         }
     }
 
     template<typename T>
-    void read(const std::string& readfilename, std::vector<std::vector<T>>& data){
-        std::ifstream readfile(readfilename);
-        if (readfile.fail()){
-            std::cout<<"No such file : "<<readfilename<<std::endl;
+    void read(const std::string& readFileName, std::vector<std::vector<T>>& data){
+        std::ifstream readFile(readFileName);
+        if (readFile.fail()){
+            std::cout<<"No such file : "<<readFileName<<std::endl;
             exit(1);
         }
         data.clear();
         std::string row, column;
         std::vector<T> rowvector;
-        while(getline(readfile,row)){
+        while(getline(readFile,row)){
             std::stringstream rowstream(row);
             rowvector.clear();
             while(getline(rowstream, column,',')){
@@ -81,15 +81,15 @@ namespace CSV{
     }
 
     template<typename T, typename TT>
-    void read(const std::string& readfilename, std::map<T,TT>& data){
-        std::ifstream readfile(readfilename);
-        if (readfile.fail()){
-            std::cout<<"No such file : "<<readfilename<<std::endl;
+    void read(const std::string& readFileName, std::map<T,TT>& data){
+        std::ifstream readFile(readFileName);
+        if (readFile.fail()){
+            std::cout<<"No such file : "<<readFileName<<std::endl;
             exit(1);
         }
         data.clear();
         std::string row,key,value;
-        while(getline(readfile,row)){
+        while(getline(readFile,row)){
             std::stringstream rowstream(row);
             int i=0;
             while(getline(rowstream, value,',')){
