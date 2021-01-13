@@ -25,6 +25,7 @@ struct Node_Epidemic : public Node
 
 };
 
+
 /*
     SIR Model simulation
     S+I -> I+I with rate SI_II
@@ -411,7 +412,6 @@ namespace SIR{
     W+I -> I+I with rate WI_II
     I -> R with rate I_R
 */
-
 namespace SWIR{
     //* pre-defined parameters
     const std::string rootDirectory = "../data/epidemics/SWIR/";
@@ -837,7 +837,6 @@ namespace SWIR{
     E -> I with rate E_I
     I -> R with rate I_R
 */
-
 namespace SEIR{
     //* pre-defined parameters
     std::map<std::string, int> stateToInt = {{"S", 0}, {"E",1}, {"I",2}, {"R",3}};
