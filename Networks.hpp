@@ -75,12 +75,6 @@ struct Network
         }
     }
 
-    // bool linkExists(const Node& t_node1, const Node& t_node2){
-    //     const auto index1 = t_node1.m_index;
-    //     const auto index2 = t_node2.m_index;
-    //     return linkExists(index1, index2);
-    // }
-
     //* Add single link
     void addLink(const Size& t_index1, const Size& t_index2){
         //* Update linksize information
@@ -92,12 +86,6 @@ struct Network
         m_adjacency[t_index1].emplace(t_index2);
         m_adjacency[t_index2].emplace(t_index1);
     }
-
-    // void addLink(const Node& t_node1, const Node& t_node2){
-    //     const auto index1 = t_node1.m_index;
-    //     const auto index2 = t_node2.m_index;
-    //     addLink(index1, index2);
-    // }
 
     //* Delete single link
     void deleteLink(const Size& t_index1, const Size& t_index2){
@@ -111,11 +99,20 @@ struct Network
         m_adjacency[t_index2].erase(t_index1);
     }
 
-    // void deleteLink(const Node& t_node1, const Node& t_node2){
-    //     const auto index1 = t_node1.m_index;
-    //     const auto index2 = t_node2.m_index;
-    //     deleteLink(index1, index2);
-    // }
+    //* Print total information of network
+    void print(){
+        std::cout << "Network Type: " << m_type << "\n";
+        std::cout << "Network Size: " << m_size << "\n";
+        std::cout << "Total Link Size: " << m_linkSize << "\n";
+        std::cout << "Adjacency Matrix\n";
+        for (Size i=0; i<m_size; ++i){
+            std::cout << i << ": ";
+            for (const Size& neighbor : m_adjacency[i]){
+                std::cout << neighbor << ", ";
+            }
+            std::cout << "\n";
+        }
+    }
 };//* End of struct Network
 
 
