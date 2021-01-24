@@ -248,14 +248,14 @@ private:
     int m_deltaMaximumClusterSize{0};
 
     //* m_parent[node] : parent of each 'node'
-    std::vector<Size> m_parent;
+    std::vector<int> m_parent;
 
     //* m_sortedCluster[size] : number of cluster of 'size'
     std::map<int, int> m_sortedCluster;
 
     //* m_birth[root] : birth time of each 'root'
     //* changedAge[root] : {age, size} of cluster with 'root'
-    std::vector<Size> m_birth;
+    std::vector<int> m_birth;
     std::vector<std::pair<int, int>> m_changedAge;
 
 public:
@@ -278,13 +278,13 @@ public:
 
     //* Simple get functions
     int getMaximumClusterSize() const {return m_maximumClusterSize;}
-    int getClusterSize(const Size& t_root) const {return -m_parent[t_root];}
+    int getClusterSize(const int& t_root) const {return -m_parent[t_root];}
     int getDeltaMaximumClusterSize() const {return m_deltaMaximumClusterSize;}
     std::vector<std::pair<int,int>> getChangedAge() const {return m_changedAge;}
 
 
     //* get the root of input node
-    Size getRoot(const Size &t_node){
+    int getRoot(const int &t_node){
         //* t_node is root
         if (m_parent[t_node] < 0){
             return t_node;
@@ -294,7 +294,7 @@ public:
     }
 
     //* Merge two clusters
-    void merge(const Size& t_root1, const Size& t_root2){
+    void merge(const int& t_root1, const int& t_root2){
         //! update link size
         m_linkSize++;
 
@@ -378,7 +378,6 @@ public:
 
         return secondMoment/firstMoment;
     }
-
 };
 
 // //* Weighted Network
