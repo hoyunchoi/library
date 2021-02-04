@@ -13,9 +13,11 @@
 #include <fstream>
 
 #include "pcg_random.hpp"
+#include "linearAlgebra.hpp"
 
 using Size = unsigned;
 using Adjacency = std::vector<std::set<Size>>;
+using WAdjacency = std::vector<std::map<Size, double>>;
 
 struct Node
 {
@@ -28,8 +30,8 @@ struct Node
     Node(const Size& t_index) : m_index(t_index){}
 
     //* Ordering operator for set
-    bool operator< (const Node& node) const {
-        return this->m_index < node.m_index;
+    bool operator< (const Node& t_node) const {
+        return this->m_index < t_node.m_index;
     }
 
 };
@@ -37,7 +39,6 @@ struct Node
 struct Network
 {
     //* Member variables
-    //! fdafad
     std::string m_type;
     Size m_size{0};
     Size m_linkSize{0};
@@ -50,7 +51,7 @@ struct Network
         m_adjacency.assign(t_size, std::set<Size>());
     }
 
-    //* Reset the whole network
+    //* Reset the whole network withiout size information
     void clear(){
         //* Clear linksize information
         m_linkSize = 0;
@@ -65,12 +66,12 @@ struct Network
     bool linkExists(const Size& t_index1, const Size& t_index2) const {
         if (m_adjacency[t_index1].size() <= m_adjacency[t_index2].size()){
             const auto candidates = m_adjacency[t_index1];
-            auto it = std::find(candidates.begin(), candidates.end(), t_index2);
+            auto it = candidates.find(t_index2);
             return it != candidates.end() ? true : false;
         }
         else{
             const auto candidates = m_adjacency[t_index2];
-            auto it = std::find(candidates.begin(), candidates.end(), t_index1);
+            auto it = candidates.find(t_index1);
             return it != candidates.end() ? true : false;
         }
     }
@@ -180,19 +181,19 @@ namespace RR{
 //* Scale free network
 namespace SF{
     Size randomPowerLawDistribution(const int& t_lower, const int& t_upper, const double& t_exponent, const double& t_prob){
-        std::uniform_real_distribution<double> realDistribution(0.0, 1.0);
+        std::uniform_real_distribution<double> probabilityDistribution(0.0, 1.0);
         return std::pow((std::pow(t_upper+0.5, t_exponent+1) - std::pow(t_lower-0.5, t_exponent+1)) * t_prob + std::pow(t_lower-0.5, t_exponent+1), 1.0 / (t_exponent+1)) + 0.5;
     }
 
     Network generate(const Size& t_size, const Size& t_linkSize, const double& t_degreeExponent, pcg32& t_randomEngine){
         Network SF(t_size);
         const double weightExponent = 1.0/(t_degreeExponent-1.0);
-        std::uniform_real_distribution<double> realDistribution(0.0, 1.0);
+        std::uniform_real_distribution<double> probabilityDistribution(0.0, 1.0);
         while(SF.m_linkSize < t_linkSize){
             Size index1, index2;
             do{
-                index1 = randomPowerLawDistribution(1, t_size, -weightExponent, realDistribution(t_randomEngine))-1;
-                index2 = randomPowerLawDistribution(1, t_size, -weightExponent, realDistribution(t_randomEngine))-1;
+                index1 = randomPowerLawDistribution(1, t_size, -weightExponent, probabilityDistribution(t_randomEngine))-1;
+                index2 = randomPowerLawDistribution(1, t_size, -weightExponent, probabilityDistribution(t_randomEngine))-1;
             } while(index1 == index2);
             SF.addLink(index1, index2);
         }
@@ -219,12 +220,12 @@ namespace CL{
             weight[i] = weight[i-1]+std::pow(i+correction, -1.0*weightExponent);
         }
 
-        std::uniform_real_distribution<double> realDistribution(0.0, 1.0);
+        std::uniform_real_distribution<double> probabilityDistribution(0.0, 1.0);
         while (CL.m_linkSize < t_linkSize){
             Size index1, index2;
             do{
-                index1 = weightSampling(weight, realDistribution(t_randomEngine));
-                index2 = weightSampling(weight, realDistribution(t_randomEngine));
+                index1 = weightSampling(weight, probabilityDistribution(t_randomEngine));
+                index2 = weightSampling(weight, probabilityDistribution(t_randomEngine));
             } while(index1 == index2);
             CL.addLink(index1, index2);
         }
@@ -233,7 +234,6 @@ namespace CL{
         return CL;
     }
 }//* End of namespace CL
-
 
 //* Network class with merging cluster by Newman-Ziff algorithm
 struct NZ_Network{
@@ -289,7 +289,7 @@ public:
         if (m_parent[t_node] < 0){
             return t_node;
         }
-        //* recursively find node
+        //* recursively aaaaa node
         return m_parent[t_node] = getRoot(m_parent[t_node]);
     }
 
@@ -324,7 +324,7 @@ public:
         }
         ++m_sortedCluster[newSize];
 
-        //! find maximum cluster
+        //! aaaaa maximum cluster
         if (m_maximumClusterSize < newSize){
             m_deltaMaximumClusterSize = newSize-m_maximumClusterSize;
             m_maximumClusterSize = newSize;
@@ -380,146 +380,298 @@ public:
     }
 };
 
-// //* Weighted Network
-// struct WNetwork{
-//     //* Member variables
-//     int m_size{0};
-//     int m_linkSize{0};
-//     std::vector<std::set<WNode>> m_adjacencyMatrix;
+//* Weighted node
+struct WNode
+{
+    //* Member variables
+    Size m_index;
+    std::map<Size, double> m_neighbors;
 
-//     //* Constructor
-//     WNetwork() {}
+    //* Constructor
+    WNode(){}
+    WNode(const Size& t_index) : m_index(t_index){}
 
-//     WNetwork(const int& t_size)
-//     : m_size(t_size){
-//         m_adjacencyMatrix.resize(t_size);
-//     }
+    //* Ordering operator for set
+    bool operator< (const WNode& t_wnode) const {
+        return this->m_index < t_wnode.m_index;
+    }
+};
 
-//     //* Simple Get functions
-//     const int size() const {return m_size;}
-//     const int getLinkSize() const {return m_linkSize;}
-//     const std::set<WNode> adjacent(const Node& t_node) const {return m_adjacencyMatrix[t_node];}
-//     std::vector<std::set<WNode>> adjacent() const {return m_adjacencyMatrix;}
+//* Weighted network
+struct WNetwork
+{
+    //* Member variables
+    std::string m_type;
+    Size m_size{0};
+    Size m_linkSize{0};
+    double m_meanDegree{0.0};
+    WAdjacency m_wadjacency;
 
-//     //* Get functions
-//     double weight(const Node& t_node1, const Node& t_node2){
-//         double weight = 0.0;
-//         if (m_adjacencyMatrix[t_node1].size() < m_adjacencyMatrix[t_node2].size()){
-//             for (WNode neighbor : m_adjacencyMatrix[t_node1]){
-//                 if (neighbor.first == t_node2){
-//                     weight = neighbor.second;
-//                     break;
-//                 }
-//             }
-//         }
-//         else{
-//             for (WNode neighbor : m_adjacencyMatrix[t_node2]){
-//                 if (neighbor.first == t_node1){
-//                     weight = neighbor.second;
-//                     break;
-//                 }
-//             }
-//         }
-//         return weight;
-//     }
+    //* Constructor
+    WNetwork(){}
+    WNetwork(const Size& t_size) : m_size(t_size){
+        m_wadjacency.assign(t_size, std::map<Size, double>());
+        for (Size index=0; index<t_size; ++index){
+            m_wadjacency[index][index] = 0.0;
+        }
+    }
 
-//     //* Whether link is already exists
-//     bool linkExists(const Node& t_node1, const Node& t_node2, const double& t_weight){
-//         if (m_adjacencyMatrix[t_node1].size() < m_adjacencyMatrix[t_node2].size()){
-//             const std::set<WNode> candidates = m_adjacencyMatrix[t_node1];
-//             auto it = std::find(candidates.begin(), candidates.end(), std::make_pair(t_node2, t_weight));
-//             return it != candidates.end() ? true : false;
-//         }
-//         else{
-//             const std::set<WNode> candidates = m_adjacencyMatrix[t_node2];
-//             auto it = std::find(candidates.begin(), candidates.end(), std::make_pair(t_node1, t_weight));
-//             return it != candidates.end() ? true : false;
-//         }
-//     }
+    //* Reset the whole network
+    void clear(){
+        //* Clear link size information
+        m_linkSize = 0;
 
-//     //* Add single link with given weight
-//     void addLink(const Node& t_node1, const Node& t_node2, const double& t_weight){
-//         //* update adjacent information
-//         m_adjacencyMatrix[t_node1].insert(std::make_pair(t_node2, t_weight));
-//         m_adjacencyMatrix[t_node2].insert(std::make_pair(t_node1, t_weight));
+        //* Clear adjacency information
+        for (auto& wneighbors : m_wadjacency){
+            wneighbors.clear();
+        }
+    }
 
-//         //* update link size
-//         ++m_linkSize;
-//     }
+    //* Whether link is already exists
+    double linkExists(const Size& t_index1, const Size& t_index2) const {
+        if (m_wadjacency[t_index1].size() <= m_wadjacency[t_index2].size()){
+            const auto candidates = m_wadjacency[t_index1];
+            auto it = candidates.find(t_index2);
+            return it != candidates.end() ? it->second : 0.0;
+        }
+        else{
+            const auto candidates = m_wadjacency[t_index2];
+            auto it = candidates.find(t_index1);
+            return it != candidates.end() ? it->second : 0.0;
+        }
+    }
 
-//     //* Delete single link with given weight
-//     void deleteLink(const Node& t_node1, const Node& t_node2, const double& t_weight){
-//         //* Update adjacent information
-//         m_adjacencyMatrix[t_node1].erase(std::make_pair(t_node2, t_weight));
-//         m_adjacencyMatrix[t_node2].erase(std::make_pair(t_node1, t_weight));
+    //* Add single link
+    void addLink(const Size& t_index1, const Size& t_index2, const double& t_weight = 1.0){
+        //* Update linksize information
+        if (!linkExists(t_index1, t_index2)){
+            ++m_linkSize;
+        }
 
-//         //* Update link size
-//         --m_linkSize;
-//     }
+        //* Update weighted adjacency information
+        m_wadjacency[t_index1].emplace(t_index2, t_weight);
+        m_wadjacency[t_index2].emplace(t_index1, t_weight);
+    }
 
-//     void deleteLink(const Node& t_node1, const Node& t_node2){
-//         //* Find weight of input link
-//         const double weight = this->weight(t_node1, t_node2);
-//         deleteLink(t_node1, t_node2, weight);
-//     }
+    //* Delete single link
+    void deleteLink(const Size& t_index1, const Size& t_index2){
+        //* Get weight information
+        const double weight = linkExists(t_index1, t_index2);
 
-//     // //* Rewire single link of one node with preserving weight
-//     // void rewire(const Node& t_node, const Node& t_oldNeighbor, const Node& t_newNeighbor){
-//     //     //* Delete link to old neighbor
-//     //     const double weight = this->weight(t_node, t_oldNeighbor);
-//     //     deleteLink(t_node, t_oldNeighbor, weight);
+        //* Update linksize information
+        if (weight){
+            --m_linkSize;
+        }
 
-//     //     //* Add link to new neighbor
-//     //     addLink(t_node, t_newNeighbor, weight);
-//     // }
+        //* Update weighted adjacency information
+        m_wadjacency[t_index1].erase(t_index2);
+        m_wadjacency[t_index2].erase(t_index1);
+    }
 
-//     //* Reset Network
-//     void clear(){
-//         m_adjacencyMatrix.clear();
-//         m_linkSize = 0;
-//     }
+    //* Print Adjacency matrix with weight
+    void printWAdjacency(const std::string& t_fileName = "", const std::string& t_seperator = ",", const std::string& t_secondSeperator = "\n", const bool t_append = false) const {
+        //* File name is given: print into the file
+        if (t_fileName.size()){
+            std::ofstream file;
+            t_append ? file.open(t_fileName, std::ios_base::app) : file.open(t_fileName);
+            for (Size index=0; index<m_size; ++index){
+                for (Size neighbor=0; neighbor<m_size; ++neighbor){
+                    //* neighbor is connected with index
+                    if (m_wadjacency[index].find(neighbor) != m_wadjacency[index].end()){
+                        file << m_wadjacency[index].at(neighbor) << t_seperator;
+                    }
+                    //* neighbor is not connected with index
+                    else{
+                        file << 0.0 << t_seperator;
+                    }
+                }
+                if (t_secondSeperator == "\n"){
+                    file << t_secondSeperator;
+                }
+            }
+            file << "\n";
+            file.close();
+        }
+        //* File name is not given: print to terminal
+        else{
+            for (Size index=0; index<m_size; ++index){
+                for (Size neighbor=0; neighbor<m_size; ++neighbor){
+                    //* neighbor is connected with index
+                    if (m_wadjacency[index].find(neighbor) != m_wadjacency[index].end()){
+                        std::cout << m_wadjacency[index].at(neighbor) << t_seperator;
+                    }
+                    //* neighbor is not connected with index
+                    else{
+                        std::cout << 0.0 << t_seperator;
+                    }
+                }
+                if (t_secondSeperator == "\n"){
+                    std::cout << t_secondSeperator;
+                }
+            }
+        }
+    }
 
+    //* Print Adjacency matrix with bool (except node weight)
+    void printAdjacency(const std::string& t_fileName = "", const std::string& t_seperator = ",", const std::string& t_secondSeperator = "\n", const bool t_append = false) const {
+        //* File name is given: print into the file
+        if (t_fileName.size()){
+            std::ofstream file;
+            t_append ? file.open(t_fileName, std::ios_base::app) : file.open(t_fileName);
+            for (Size index=0; index<m_size; ++index){
+                for (Size neighbor=0; neighbor<m_size; ++neighbor){
+                    //* neighbor is connected with index
+                    if (neighbor != index && m_wadjacency[index].find(neighbor) != m_wadjacency[index].end()){
+                        file << 1 << t_seperator;
+                    }
+                    else{
+                        file << 0 << t_seperator;
+                    }
+                }
+                if (t_secondSeperator == "\n"){
+                    file << t_secondSeperator;
+                }
+            }
+            file << "\n";
+            file.close();
+        }
+        //* File name is not given: print to terminal
+        else{
+            for (Size index=0; index<m_size; ++index){
+                for (Size neighbor=0; neighbor<m_size; ++neighbor){
+                    //* neighbor is connected with index
+                    if (neighbor == index){
+                        std::cout << m_wadjacency[index].at(index) << t_seperator;
+                    }
+                    else if (m_wadjacency[index].find(neighbor) != m_wadjacency[index].end()){
+                        std::cout << 1 << t_seperator;
+                    }
+                    else{
+                        std::cout << 0 << t_seperator;
+                    }
+                }
+                if (t_secondSeperator == "\n"){
+                    std::cout << t_secondSeperator;
+                }
+            }
+        }
+    }
 
-//     //* Show full information of network
-//     void printAdjacent(const std::string& t_outFileName = "default"){
-//         if (t_outFileName=="default"){
-//             std::cout << "Total number of nodes: " << m_size << ", links: "<< m_linkSize << "\n";
-//             for (Node node=0; node<m_size; ++node){
-//                 std::cout << node << ":";
-//                 for (WNode neighbor : m_adjacencyMatrix[node]){
-//                     std::cout << "(" << neighbor.first << "," << neighbor.second << "), ";
-//                 }
-//                 std::cout << "\n";
-//             }
-//         }
-//         else{
-//             std::ofstream outFile(t_outFileName);
-//             outFile << "Total number of nodes: " << m_size << ", links: "<< m_linkSize << "\n";
-//             for (Node node=0; node<m_size; ++node){
-//                 outFile << node << ":";
-//                 for (WNode neighbor : m_adjacencyMatrix[node]){
-//                     outFile << "(" << neighbor.first << "," << neighbor.second << "), ";
-//                 }
-//                 outFile << "\n";
-//             }
-//         }
-//     }
+    //* Prind degree distribution
+    void printDegreeDist (const std::string& t_fileName = "", const std::string& t_seperator = ",", const std::string& t_secondSeperator = "\n") const {
+        using namespace linearAlgebra;
 
-//     void printDegree(const std::string& t_outFileName = "default"){
-//         std::map<int, int> degreeDistribution;
-//         for (int node=0; node<m_size; ++node){
-//             ++degreeDistribution[m_adjacencyMatrix[node].size()];
-//         }
-//         if (t_outFileName == "default"){
-//             for (auto it=degreeDistribution.begin(); it!=degreeDistribution.end(); ++it){
-//                 std::cout << it->first << "," << it->second << "\n";
-//             }
-//         }
-//         else{
-//             std::ofstream outFile(t_outFileName);
-//             for (auto it=degreeDistribution.begin(); it!=degreeDistribution.end(); ++it){
-//                 outFile << it->first << "," << it->second << "\n";
-//             }
-//         }
-//     }
-// };//* End of struct WNetwork
+        //* Generate degree distribution
+        std::map<int, double> degreeDist;
+        for (Size index=0; index<m_size; ++index){
+            ++degreeDist[m_wadjacency[index].size()-1];
+        }
+        degreeDist /= (double)linearAlgebra::accumulate(degreeDist);
+
+        //* File name is given: print into the file
+        if (t_fileName.size()){
+            std::ofstream file(t_fileName);
+            for (auto it=degreeDist.begin(); it!=degreeDist.end(); ++it){
+                file << it->first << t_seperator << it->second << t_secondSeperator;
+            }
+            file.close();
+        }
+        //* File name is not given: print to terminal
+        else{
+            for (auto it=degreeDist.begin(); it!=degreeDist.end(); ++it){
+                std::cout << it->first << t_seperator << it->second << t_secondSeperator;
+            }
+        }
+    }
+
+    //* Prind node weight distribution
+    void printNodeWeightDist (const std::string& t_fileName = "", const std::string& t_seperator = ",", const std::string& t_secondSeperator = "\n") const {
+        using namespace linearAlgebra;
+
+        //* Generate node weight distribution
+        std::map<double, double> nodeWeightDist;
+        for (Size index=0; index<m_size; ++index){
+            ++nodeWeightDist[m_wadjacency[index].at(index)];
+        }
+        nodeWeightDist /= linearAlgebra::accumulate(nodeWeightDist);
+
+        //* File name is given: print into the file
+        if (t_fileName.size()){
+            std::ofstream file(t_fileName);
+            for (auto it=nodeWeightDist.begin(); it!=nodeWeightDist.end(); ++it){
+                file << it->first << t_seperator << it->second << t_secondSeperator;
+            }
+            file.close();
+        }
+        //* File name is not given: print to terminal
+        else{
+            for (auto it=nodeWeightDist.begin(); it!=nodeWeightDist.end(); ++it){
+                std::cout << it->first << t_seperator << it->second << t_secondSeperator;
+            }
+        }
+    }
+};//* End of struct WNetwork
+
+//* Weighted scale free network by Chung-Lu. Degree distribution and node weight distribution follows same power law
+namespace WCL{
+    Size weightSampling(const std::vector<double>& t_weight, const double& t_prob){
+        return (Size) (std::lower_bound(t_weight.begin(), t_weight.end(), t_prob*t_weight.back())-t_weight.begin());
+    }
+
+    WNetwork generate(const Size& t_size, const Size& t_meanPopulation, const double& t_meanDegree, const double& t_degreeExponent, const double& t_linkWeightExponent, pcg32& t_randomEngine){
+        WNetwork CL(t_size);
+        //* Genearting conventional scale free network by Chung-Lu
+        const double weightExponent = 1.0/(t_degreeExponent-1.0);
+        const double correction = weightExponent < 0.5 ? 1.0 : std::pow(10.0*std::sqrt(2.0)*(1.0-weightExponent), 1.0/weightExponent) * std::pow(t_size, 1.0-1.0/(2.0-weightExponent));
+
+        std::vector<double> weight(t_size, 0.0);
+        weight[0] = std::pow(correction, -1.0*weightExponent);
+        for (Size i=1; i<t_size; ++i){
+            weight[i] = weight[i-1] + std::pow(i+correction, -1.0*weightExponent);
+        }
+
+        std::uniform_real_distribution<double> probabilityDistribution(0.0, 1.0);
+        while(CL.m_linkSize < t_meanDegree * t_size / 2.0){
+            Size index1, index2;
+            do{
+                index1 = weightSampling(weight, probabilityDistribution(t_randomEngine));
+                index2 = weightSampling(weight, probabilityDistribution(t_randomEngine));
+            } while(index1 == index2);
+            CL.addLink(index1, index2);
+        }
+
+        CL.m_type = "CL";
+        CL.m_meanDegree = t_meanDegree;
+
+        //* Add weight to node and link
+        const unsigned long long population = t_size * t_meanPopulation;
+        for (Size index=0; index<t_size; ++index){
+            //* Add node itself to weighted adjacency matrix
+            CL.m_wadjacency[index][index] = 0.0;
+
+            //* Get weight of node and link
+            const Size degree = CL.m_wadjacency[index].size() - 1;
+            const double nodeWeight = degree / (2.0 * CL.m_linkSize);
+            std::map<Size, double> linkWeight;
+            for (auto it = CL.m_wadjacency[index].begin(); it != CL.m_wadjacency[index].end(); ++it){
+                const Size neighbor = it->first;
+                if (neighbor != index){
+                    const int neighborDegree = CL.m_wadjacency[neighbor].size() - 1;
+                    linkWeight[neighbor] = std::pow(degree * neighborDegree, t_linkWeightExponent);
+                }
+            }
+            const double totalLinkWeight = linearAlgebra::accumulate(linkWeight);
+
+            //* Add weight to weighted adjacency matrix
+            for (auto it = CL.m_wadjacency[index].begin(); it != CL.m_wadjacency[index].end(); ++it){
+                if (it->first != index){
+                    CL.m_wadjacency[index][it->first] = linkWeight[it->first] / totalLinkWeight;
+                }
+                else{
+                    CL.m_wadjacency[index][it->first] = std::floor(population * nodeWeight + 0.5);
+                }
+            }
+        }
+        return CL;
+    }
+}//* End of namespace WCL
