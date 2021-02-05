@@ -489,7 +489,9 @@ struct WNetwork
                     file << t_secondSeperator;
                 }
             }
-            file << "\n";
+            if (t_secondSeperator != "\n"){
+                file << "\n";
+            }
             file.close();
         }
         //* File name is not given: print to terminal
@@ -532,7 +534,9 @@ struct WNetwork
                     file << t_secondSeperator;
                 }
             }
-            file << "\n";
+            if (t_secondSeperator != "\n"){
+                file << "\n";
+            }
             file.close();
         }
         //* File name is not given: print to terminal
