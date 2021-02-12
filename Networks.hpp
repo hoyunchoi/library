@@ -29,7 +29,10 @@ struct Node
     Node(){}
     Node(const Size& t_index) : m_index(t_index){}
 
-    //* Ordering operator for set
+    //* Comparison operators
+    bool operator== (const Node& t_node) const {
+        return this->m_index == t_node.m_index;
+    }
     bool operator< (const Node& t_node) const {
         return this->m_index < t_node.m_index;
     }
@@ -391,7 +394,8 @@ struct WNode
     WNode(){}
     WNode(const Size& t_index) : m_index(t_index){}
 
-    //* Ordering operator for set
+
+    //* Comparison operator
     bool operator< (const WNode& t_wnode) const {
         return this->m_index < t_wnode.m_index;
     }
@@ -422,21 +426,22 @@ struct WNetwork
         m_linkSize = 0;
 
         //* Clear adjacency information
-        for (auto& wneighbors : m_wadjacency){
-            wneighbors.clear();
+        for (Size index=0; index<m_size; ++index){
+            m_wadjacency[index].clear();
+            m_wadjacency[index][index] = 0.0;
         }
     }
 
     //* Whether link is already exists
-    double linkExists(const Size& t_index1, const Size& t_index2) const {
+    double getWeight(const Size& t_index1, const Size& t_index2) const {
         if (m_wadjacency[t_index1].size() <= m_wadjacency[t_index2].size()){
-            const auto candidates = m_wadjacency[t_index1];
-            auto it = candidates.find(t_index2);
+            const std::map<Size, double> candidates = m_wadjacency[t_index1];
+            const auto it = candidates.find(t_index2);
             return it != candidates.end() ? it->second : 0.0;
         }
         else{
-            const auto candidates = m_wadjacency[t_index2];
-            auto it = candidates.find(t_index1);
+            const std::map<Size, double> candidates = m_wadjacency[t_index2];
+            const auto it = candidates.find(t_index1);
             return it != candidates.end() ? it->second : 0.0;
         }
     }
@@ -444,7 +449,7 @@ struct WNetwork
     //* Add single link
     void addLink(const Size& t_index1, const Size& t_index2, const double& t_weight = 1.0){
         //* Update linksize information
-        if (!linkExists(t_index1, t_index2)){
+        if (!getWeight(t_index1, t_index2)){
             ++m_linkSize;
         }
 
@@ -456,7 +461,7 @@ struct WNetwork
     //* Delete single link
     void deleteLink(const Size& t_index1, const Size& t_index2){
         //* Get weight information
-        const double weight = linkExists(t_index1, t_index2);
+        const double weight = getWeight(t_index1, t_index2);
 
         //* Update linksize information
         if (weight){
@@ -469,94 +474,51 @@ struct WNetwork
     }
 
     //* Print Adjacency matrix with weight
-    void printWAdjacency(const std::string& t_fileName = "", const std::string& t_seperator = ",", const std::string& t_secondSeperator = "\n", const bool t_append = false) const {
+    void printWAdjacency(const std::string& t_fileName = "", const bool t_append = false) const {
         //* File name is given: print into the file
         if (t_fileName.size()){
             std::ofstream file;
             t_append ? file.open(t_fileName, std::ios_base::app) : file.open(t_fileName);
             for (Size index=0; index<m_size; ++index){
-                for (Size neighbor=0; neighbor<m_size; ++neighbor){
-                    //* neighbor is connected with index
-                    if (m_wadjacency[index].find(neighbor) != m_wadjacency[index].end()){
-                        file << m_wadjacency[index].at(neighbor) << t_seperator;
-                    }
-                    //* neighbor is not connected with index
-                    else{
-                        file << 0.0 << t_seperator;
-                    }
+                for (Size neighbor=0; neighbor<m_size-1; ++neighbor){
+                    neighbor != index ? file << getWeight(index, neighbor) << "," : file << 0 << ",";
                 }
-                if (t_secondSeperator == "\n"){
-                    file << t_secondSeperator;
-                }
-            }
-            if (t_secondSeperator != "\n"){
-                file << "\n";
+                index != m_size-1 ? file << getWeight(index, m_size-1) << "\n" : file << 0 << "\n";
             }
             file.close();
         }
         //* File name is not given: print to terminal
         else{
             for (Size index=0; index<m_size; ++index){
-                for (Size neighbor=0; neighbor<m_size; ++neighbor){
-                    //* neighbor is connected with index
-                    if (m_wadjacency[index].find(neighbor) != m_wadjacency[index].end()){
-                        std::cout << m_wadjacency[index].at(neighbor) << t_seperator;
-                    }
-                    //* neighbor is not connected with index
-                    else{
-                        std::cout << 0.0 << t_seperator;
-                    }
+                for (Size neighbor=0; neighbor<m_size-1; ++neighbor){
+                    neighbor != index ? std::cout << getWeight(index, neighbor) << "," : std::cout << 0 << ",";
                 }
-                if (t_secondSeperator == "\n"){
-                    std::cout << t_secondSeperator;
-                }
+                index != m_size-1 ? std::cout << getWeight(index, m_size-1) << "\n" : std::cout << 0 << "\n";
             }
         }
     }
 
     //* Print Adjacency matrix with bool (except node weight)
-    void printAdjacency(const std::string& t_fileName = "", const std::string& t_seperator = ",", const std::string& t_secondSeperator = "\n", const bool t_append = false) const {
+    void printAdjacency(const std::string& t_fileName = "", const bool t_append = false) const {
         //* File name is given: print into the file
         if (t_fileName.size()){
             std::ofstream file;
             t_append ? file.open(t_fileName, std::ios_base::app) : file.open(t_fileName);
             for (Size index=0; index<m_size; ++index){
-                for (Size neighbor=0; neighbor<m_size; ++neighbor){
-                    //* neighbor is connected with index
-                    if (neighbor != index && m_wadjacency[index].find(neighbor) != m_wadjacency[index].end()){
-                        file << 1 << t_seperator;
-                    }
-                    else{
-                        file << 0 << t_seperator;
-                    }
+                for (Size neighbor=0; neighbor<m_size-1; ++neighbor){
+                    (m_wadjacency[index].find(neighbor) != m_wadjacency[index].end() && neighbor != index) ? file << 1 << "," : file << 0 << ",";
                 }
-                if (t_secondSeperator == "\n"){
-                    file << t_secondSeperator;
-                }
-            }
-            if (t_secondSeperator != "\n"){
-                file << "\n";
+                (m_wadjacency[index].find(m_size-1) != m_wadjacency[index].end() && m_size-1 != index) ? file << 1 << "\n" : file << 0 << "\n";
             }
             file.close();
         }
         //* File name is not given: print to terminal
         else{
             for (Size index=0; index<m_size; ++index){
-                for (Size neighbor=0; neighbor<m_size; ++neighbor){
-                    //* neighbor is connected with index
-                    if (neighbor == index){
-                        std::cout << m_wadjacency[index].at(index) << t_seperator;
-                    }
-                    else if (m_wadjacency[index].find(neighbor) != m_wadjacency[index].end()){
-                        std::cout << 1 << t_seperator;
-                    }
-                    else{
-                        std::cout << 0 << t_seperator;
-                    }
+                for (Size neighbor=0; neighbor<m_size-1; ++neighbor){
+                    (m_wadjacency[index].find(neighbor) != m_wadjacency[index].end() && neighbor != index) ? std::cout << 1 << "," : std::cout << 0 << ",";
                 }
-                if (t_secondSeperator == "\n"){
-                    std::cout << t_secondSeperator;
-                }
+                (m_wadjacency[index].find(m_size-1) != m_wadjacency[index].end() && m_size-1 != index) ? std::cout << 1 << "\n" : std::cout << 0 << "\n";
             }
         }
     }
