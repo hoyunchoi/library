@@ -491,9 +491,10 @@ std::vector<double> linspace(const double& t_begin, const double& t_end, const i
 }
 
 //* Include t_begin, t_end
-std::vector<double> arange(const double& t_begin, const double& t_end, const double& t_delta){
-    int size = std::ceil((t_end-t_begin)/t_delta);
-    std::vector<double> result(size);
+template<typename T>
+std::vector<T> arange(const T& t_begin, const T& t_end, const T& t_delta){
+    const int size = std::ceil((t_end-t_begin)/t_delta);
+    std::vector<T> result(size);
     for (int i=0; i<size; ++i){
         result[i] = t_begin + t_delta*i;
     }
