@@ -20,11 +20,9 @@ struct Node_Epidemic : public Node
 
     //* Generator
     Node_Epidemic(){}
-    Node_Epidemic(const Size& t_index) : Node(t_index){}
-    Node_Epidemic(const Size& t_index, const std::string& t_state) : Node(t_index), m_state(t_state){}
-
+    Node_Epidemic(const unsigned& t_index) : Node(t_index){}
+    Node_Epidemic(const unsigned& t_index, const std::string& t_state) : Node(t_index), m_state(t_state){}
 };
-
 
 /*
     SIR Model simulation
@@ -35,12 +33,12 @@ namespace SIR{
     //* pre-defined parameters
     const std::string rootDirectory = "../data/epidemics/SIR/";
     std::map<std::string, int> stateToInt = {{"S",0}, {"I",1}, {"R",2}};
-    Size seedSize;
+    unsigned seedSize;
 
     //* Network parameters
     std::string networkType;
-    Size networkSize;
-    Size meanDegree;
+    unsigned networkSize;
+    unsigned meanDegree;
     std::vector<Node_Epidemic> nodes;
 
     //* SIR rate parameter
@@ -66,7 +64,7 @@ namespace SIR{
         meanDegree = t_network.m_meanDegree;
 
         nodes.clear(); nodes.reserve(networkSize);
-        for (Size index=0; index<networkSize; ++index){
+        for (unsigned index=0; index<networkSize; ++index){
             Node_Epidemic node(index, "S");
             node.m_neighbors = t_network.m_adjacency[index];
             nodes.emplace_back(node);
@@ -74,7 +72,7 @@ namespace SIR{
     }
 
     //* Set rate parameters
-    void setRate(const double& t_SI_II, const double& t_I_R, const Size& t_seedSize=1){
+    void setRate(const double& t_SI_II, const double& t_I_R, const unsigned& t_seedSize=1){
         SI_II = t_SI_II;
         I_R = t_I_R;
         seedSize = t_seedSize;
@@ -88,7 +86,7 @@ namespace SIR{
         const double deltaT = 1e-2;
 
         //* Parameters used for RK4
-        Size iteration;
+        unsigned iteration;
         std::vector<double> recentR;
         double currentTime;
         double ratioS;
@@ -182,20 +180,20 @@ namespace SIR{
     //* Simulate SIR model using Gillespi Algorithm
     namespace GA{
         //* Parameters used for GA
-        std::set<Size> reactingIndex;
+        std::set<unsigned> reactingIndex;
         double deltaT, currentTime;
         int numS;
         int numI;
         int numR;
 
         //* Update transition rate of single node
-        void updateTransitionRate(const Size& t_index){
+        void updateTransitionRate(const unsigned& t_index){
             const int intState = stateToInt[nodes[t_index].m_state];
             switch (intState){
                 //* S process
                 case 0:{
-                    Size infectiousNeighbor = 0;
-                    for (const Size& neighbor : nodes[t_index].m_neighbors){
+                    unsigned infectiousNeighbor = 0;
+                    for (const unsigned& neighbor : nodes[t_index].m_neighbors){
                         if (nodes[neighbor].m_state == "I"){
                             ++infectiousNeighbor;
                         }
@@ -218,7 +216,7 @@ namespace SIR{
 
         //* Update transition rate of all reacting nodes
         void updateTransitionRate(){
-            for (const Size& index : reactingIndex){
+            for (const unsigned& index : reactingIndex){
                 updateTransitionRate(index);
             }
         }
@@ -233,10 +231,10 @@ namespace SIR{
             numI = seedSize;
             numR = 0;
             reactingIndex.clear();
-            for (Size index=0; index<seedSize; ++index){
+            for (unsigned index=0; index<seedSize; ++index){
                 nodes[index].m_state = "I";
                 reactingIndex.emplace(index);
-                for (const Size& neighbor : nodes[index].m_neighbors){
+                for (const unsigned& neighbor : nodes[index].m_neighbors){
                     reactingIndex.emplace(neighbor);
                 }
             }
@@ -248,8 +246,8 @@ namespace SIR{
             deltaT = 1e-2;
 
             //* Do reactions according to each transition rate and add I into reacting
-            std::set<Size> newReactingIndex;
-            for (const Size& index : reactingIndex){
+            std::set<unsigned> newReactingIndex;
+            for (const unsigned& index : reactingIndex){
                 const int intState = stateToInt[nodes[index].m_state];
                 const double transitionProb = 1.0-std::exp(-1.0*nodes[index].m_transitionRate * deltaT);
                 switch (intState){
@@ -280,8 +278,8 @@ namespace SIR{
 
             //* Add neighbor S of I node into reacting nodes
             reactingIndex = newReactingIndex;
-            for (const Size& index : newReactingIndex){
-                for (const Size& neighbor : nodes[index].m_neighbors){
+            for (const unsigned& index : newReactingIndex){
+                for (const unsigned& neighbor : nodes[index].m_neighbors){
                     if (nodes[neighbor].m_state == "S"){
                         reactingIndex.emplace(neighbor);
                     }
@@ -297,18 +295,18 @@ namespace SIR{
         void asyncUpdate(){
             //* Calculate total tarnsition rate and delta time
             double totalTransitionRate = 0.0;
-            for (const Size& index : reactingIndex){
+            for (const unsigned& index : reactingIndex){
                 totalTransitionRate += nodes[index].m_transitionRate;
             }
             deltaT = std::log(1.0/probabilityDistribution(randomEngine))/totalTransitionRate;
             totalTransitionRate *= probabilityDistribution(randomEngine);
 
             //* Choose target node to be reacted
-            std::vector<Size> shuffledReactingIndex(reactingIndex.begin(), reactingIndex.end());
+            std::vector<unsigned> shuffledReactingIndex(reactingIndex.begin(), reactingIndex.end());
             std::shuffle(shuffledReactingIndex.begin(), shuffledReactingIndex.end(), randomEngine);
             double cumulativeTransitionRate = 0.0;
-            Size target = 0;
-            for (Size i=0; i<shuffledReactingIndex.size(); ++i){
+            unsigned target = 0;
+            for (unsigned i=0; i<shuffledReactingIndex.size(); ++i){
                 target = shuffledReactingIndex[i];
                 cumulativeTransitionRate += nodes[target].m_transitionRate;
                 if (cumulativeTransitionRate > totalTransitionRate){
@@ -325,7 +323,7 @@ namespace SIR{
                     --numS;
                     ++numI;
                     updateTransitionRate(target);
-                    for (const Size& neighbor : nodes[target].m_neighbors){
+                    for (const unsigned& neighbor : nodes[target].m_neighbors){
                         if (nodes[neighbor].m_state == "S"){
                             reactingIndex.emplace(neighbor);
                             updateTransitionRate(neighbor);
@@ -339,7 +337,7 @@ namespace SIR{
                     --numI;
                     ++numR;
                     reactingIndex.erase(target);
-                    for (const Size& neighbor : nodes[target].m_neighbors){
+                    for (const unsigned& neighbor : nodes[target].m_neighbors){
                         if (nodes[neighbor].m_state == "S"){
                             nodes[neighbor].m_transitionRate -= SI_II;
                             if (!nodes[neighbor].m_transitionRate){
@@ -416,12 +414,12 @@ namespace SWIR{
     //* pre-defined parameters
     const std::string rootDirectory = "../data/epidemics/SWIR/";
     std::map<std::string, int> stateToInt = {{"S", 0}, {"W", 1}, {"I", 2}, {"R", 3}};
-    Size seedSize;
+    unsigned seedSize;
 
     //* Network parameters
     std::string networkType;
-    Size networkSize;
-    Size meanDegree;
+    unsigned networkSize;
+    unsigned meanDegree;
     std::vector<Node_Epidemic> nodes;
 
     //* SWIR rate parameter
@@ -446,7 +444,7 @@ namespace SWIR{
         meanDegree = t_network.m_meanDegree;
 
         nodes.clear(); nodes.reserve(networkSize);
-        for (Size index=0; index<networkSize; ++index){
+        for (unsigned index=0; index<networkSize; ++index){
             Node_Epidemic node(index, "S");
             node.m_neighbors = t_network.m_adjacency[index];
             nodes.emplace_back(node);
@@ -454,7 +452,7 @@ namespace SWIR{
     }
 
     //* Get model parameters
-    void setRate(const double& t_SI_WI, const double& t_WI_II, const double& t_I_R, const Size& t_seedSize=1){
+    void setRate(const double& t_SI_WI, const double& t_WI_II, const double& t_I_R, const unsigned& t_seedSize=1){
         SI_WI = t_SI_WI;
         WI_II = t_WI_II;
         I_R = t_I_R;
@@ -469,7 +467,7 @@ namespace SWIR{
         const double deltaT = 1e-2;
 
         //* Parameters used for RK4
-        Size iteration;
+        unsigned iteration;
         std::vector<double> recentR;
         double currentTime;
         double ratioS, ratioW, ratioI, ratioR;
@@ -569,18 +567,18 @@ namespace SWIR{
     //* Simulate SWIR model using Gillespi Algorithm
     namespace GA{
         //* Parameters used for GA
-        std::set<Size> reactingIndex;
+        std::set<unsigned> reactingIndex;
         double deltaT, currentTime;
         int numS, numW, numI, numR;
 
         //* Update transition rate of single node
-        void updateTransitionRate(const Size& t_index){
+        void updateTransitionRate(const unsigned& t_index){
             const int intState = stateToInt[nodes[t_index].m_state];
             switch (intState){
                 //* S process
                 case 0:{
-                    Size infectiousNeighbor = 0;
-                    for (const Size& neighbor : nodes[t_index].m_neighbors){
+                    unsigned infectiousNeighbor = 0;
+                    for (const unsigned& neighbor : nodes[t_index].m_neighbors){
                         if (nodes[neighbor].m_state == "I"){
                             ++infectiousNeighbor;
                         }
@@ -590,8 +588,8 @@ namespace SWIR{
                 }
                 //* W process
                 case 1:{
-                    Size infectiousNeighbor = 0;
-                    for (const Size& neighbor : nodes[t_index].m_neighbors){
+                    unsigned infectiousNeighbor = 0;
+                    for (const unsigned& neighbor : nodes[t_index].m_neighbors){
                         if (nodes[neighbor].m_state == "I"){
                             ++infectiousNeighbor;
                         }
@@ -613,7 +611,7 @@ namespace SWIR{
         }
 
         void updateTransitionRate(){
-            for (const Size& index : reactingIndex){
+            for (const unsigned& index : reactingIndex){
                 updateTransitionRate(index);
             }
         }
@@ -629,10 +627,10 @@ namespace SWIR{
             numI = seedSize;
             numR = 0;
             reactingIndex.clear();
-            for (Size index=0; index<seedSize; ++index){
+            for (unsigned index=0; index<seedSize; ++index){
                 nodes[index].m_state = "I";
                 reactingIndex.emplace(index);
-                for (const Size& neighbor : nodes[index].m_neighbors){
+                for (const unsigned& neighbor : nodes[index].m_neighbors){
                     reactingIndex.emplace(neighbor);
                 }
             }
@@ -644,8 +642,8 @@ namespace SWIR{
             deltaT = 1e-2;
 
             //* Do reactions according to each transition rate and add I into reacting nodes
-            std::set<Size> newReactingIndex;
-            for (const Size& index : reactingIndex){
+            std::set<unsigned> newReactingIndex;
+            for (const unsigned& index : reactingIndex){
                 const int intState = stateToInt[nodes[index].m_state];
                 const double transitionProb = 1.0-std::exp(-1.0*nodes[index].m_transitionRate*deltaT);
                 switch(intState){
@@ -685,8 +683,8 @@ namespace SWIR{
 
             //* Add neighbor of S,W of I node into reacting nodes
             reactingIndex = newReactingIndex;
-            for (const Size& index : newReactingIndex){
-                for (const Size& neighbor : nodes[index].m_neighbors){
+            for (const unsigned& index : newReactingIndex){
+                for (const unsigned& neighbor : nodes[index].m_neighbors){
                     if (nodes[neighbor].m_state == "S" || nodes[neighbor].m_state == "W"){
                         reactingIndex.emplace(neighbor);
                     }
@@ -703,7 +701,7 @@ namespace SWIR{
         void asyncUpdate(){
             //* Calculate total transition rate and Delta time
             double totalTransitionRate = 0.0;
-            for (const Size& index : reactingIndex){
+            for (const unsigned& index : reactingIndex){
                 totalTransitionRate += nodes[index].m_transitionRate;
             }
             deltaT = std::log(1.0/probabilityDistribution(randomEngine))/totalTransitionRate;
@@ -711,11 +709,11 @@ namespace SWIR{
 
 
             //* Choose target node to be reacted
-            std::vector<Size> shuffledReactingIndex(reactingIndex.begin(), reactingIndex.end());
+            std::vector<unsigned> shuffledReactingIndex(reactingIndex.begin(), reactingIndex.end());
             std::shuffle(shuffledReactingIndex.begin(), shuffledReactingIndex.end(), randomEngine);
             double cumulativeTransitionRate = 0.0;
-            Size target;
-            for (Size i=0; i<shuffledReactingIndex.size(); ++i){
+            unsigned target;
+            for (unsigned i=0; i<shuffledReactingIndex.size(); ++i){
                 target = shuffledReactingIndex[i];
                 cumulativeTransitionRate += nodes[target].m_transitionRate;
                 if (cumulativeTransitionRate > totalTransitionRate){
@@ -738,7 +736,7 @@ namespace SWIR{
                     nodes[target].m_state = "I";
                     --numW; ++numI;
                     nodes[target].m_transitionRate = I_R;
-                    for (const Size& neighbor : nodes[target].m_neighbors){
+                    for (const unsigned& neighbor : nodes[target].m_neighbors){
                         if (nodes[neighbor].m_state == "S"){
                             nodes[neighbor].m_transitionRate += SI_WI;
                             reactingIndex.emplace(neighbor);
@@ -756,7 +754,7 @@ namespace SWIR{
                     --numI; ++numR;
                     nodes[target].m_transitionRate = 0.0;
                     reactingIndex.erase(target);
-                    for (const Size& neighbor : nodes[target].m_neighbors){
+                    for (const unsigned& neighbor : nodes[target].m_neighbors){
                         if (nodes[neighbor].m_state == "S"){
                             nodes[neighbor].m_transitionRate -= SI_WI;
                             if (!nodes[neighbor].m_transitionRate){
@@ -840,12 +838,12 @@ namespace SWIR{
 namespace SEIR{
     //* pre-defined parameters
     std::map<std::string, int> stateToInt = {{"S", 0}, {"E",1}, {"I",2}, {"R",3}};
-    Size seedSize;
+    unsigned seedSize;
 
     //* Network parameters
     std::string networkType;
-    Size networkSize;
-    Size meanDegree;
+    unsigned networkSize;
+    unsigned meanDegree;
     std::vector<Node_Epidemic> nodes;
 
     //* SEIR rate parameter
@@ -871,7 +869,7 @@ namespace SEIR{
         meanDegree = t_network.m_meanDegree;
 
         nodes.clear(); nodes.reserve(networkSize);
-        for (Size index=0; index<networkSize; ++index){
+        for (unsigned index=0; index<networkSize; ++index){
             Node_Epidemic node(index, "S");
             node.m_neighbors = t_network.m_adjacency[index];
             nodes.emplace_back(node);
@@ -879,7 +877,7 @@ namespace SEIR{
     }
 
     //* Set rate parameters
-    void setRate(const double& t_SI_EI, const double& t_E_I, const double& t_I_R, const Size& t_seedSize=1){
+    void setRate(const double& t_SI_EI, const double& t_E_I, const double& t_I_R, const unsigned& t_seedSize=1){
         SI_EI = t_SI_EI;
         E_I = t_E_I;
         I_R = t_I_R;
@@ -894,7 +892,7 @@ namespace SEIR{
         const double deltaT = 1e-2;
 
         //* Parameters used for RK4
-        Size iteration;
+        unsigned iteration;
         std::vector<double> recentR;
         double currentTime;
         double ratioS, ratioE, ratioI, ratioR;
@@ -993,18 +991,18 @@ namespace SEIR{
     //* Simulate SEIR model using Gillespi Algorithm
     namespace GA{
         //* Parameters used for GA
-        std::set<Size> reactingIndex;
+        std::set<unsigned> reactingIndex;
         double deltaT, currentTime;
         int numS, numE, numI, numR;
 
         //* Update transition rate of single node
-        void updateTransitionRate(const Size& t_index){
+        void updateTransitionRate(const unsigned& t_index){
             const int intState = stateToInt[nodes[t_index].m_state];
             switch (intState){
                 //* S process
                 case 0:{
-                    Size infectiousNeighbor = 0;
-                    for (const Size& neighbor : nodes[t_index].m_neighbors){
+                    unsigned infectiousNeighbor = 0;
+                    for (const unsigned& neighbor : nodes[t_index].m_neighbors){
                         if (nodes[neighbor].m_state == "I"){
                             ++infectiousNeighbor;
                         }
@@ -1032,7 +1030,7 @@ namespace SEIR{
 
         //* Update transition rate of all reacting nodes
         void updateTransitionRate(){
-            for (const Size& index : reactingIndex){
+            for (const unsigned& index : reactingIndex){
                 updateTransitionRate(index);
             }
         }
@@ -1048,10 +1046,10 @@ namespace SEIR{
             numI = seedSize;
             numR = 0;
             reactingIndex.clear();
-            for (Size index=0; index<seedSize; ++index){
+            for (unsigned index=0; index<seedSize; ++index){
                 nodes[index].m_state = "I";
                 reactingIndex.emplace(index);
-                for (const Size& neighbor : nodes[index].m_neighbors){
+                for (const unsigned& neighbor : nodes[index].m_neighbors){
                     reactingIndex.emplace(neighbor);
                 }
             }
@@ -1063,8 +1061,8 @@ namespace SEIR{
             deltaT = 1e-2;
 
             //* Do reactions according to each transition rate and add E,I into reacting nodes
-            std::set<Size> newReactingIndex;
-            for (const Size& index : reactingIndex){
+            std::set<unsigned> newReactingIndex;
+            for (const unsigned& index : reactingIndex){
                 const int intState = stateToInt[nodes[index].m_state];
                 const double transitionProb = 1.0-std::exp(-1.0*nodes[index].m_transitionRate*deltaT);
                 switch(intState){
@@ -1105,9 +1103,9 @@ namespace SEIR{
 
             //* Add neighbor S of I node into reacting nodes
             reactingIndex = newReactingIndex;
-            for (const Size& index : newReactingIndex){
+            for (const unsigned& index : newReactingIndex){
                 if (nodes[index].m_state == "I"){
-                    for (const Size& neighbor : nodes[index].m_neighbors){
+                    for (const unsigned& neighbor : nodes[index].m_neighbors){
                         if (nodes[neighbor].m_state == "S"){
                             reactingIndex.emplace(neighbor);
                         }
@@ -1125,18 +1123,18 @@ namespace SEIR{
         void asyncUpdate(){
             //* Calculate total transition rate and Delta time
             double totalTransitionRate = 0.0;
-            for (const Size& index : reactingIndex){
+            for (const unsigned& index : reactingIndex){
                 totalTransitionRate += nodes[index].m_transitionRate;
             }
             deltaT = std::log(1.0/probabilityDistribution(randomEngine))/totalTransitionRate;
             totalTransitionRate *= probabilityDistribution(randomEngine);
 
             //* Choose target node to be reacted
-            std::vector<Size> shuffledReactingIndex(reactingIndex.begin(), reactingIndex.end());
+            std::vector<unsigned> shuffledReactingIndex(reactingIndex.begin(), reactingIndex.end());
             std::shuffle(shuffledReactingIndex.begin(), shuffledReactingIndex.end(), randomEngine);
             double cumulativeTransitionRate = 0.0;
-            Size target;
-            for (Size i=0; i<shuffledReactingIndex.size(); ++i){
+            unsigned target;
+            for (unsigned i=0; i<shuffledReactingIndex.size(); ++i){
                 target = shuffledReactingIndex[i];
                 cumulativeTransitionRate += nodes[target].m_transitionRate;
                 if (cumulativeTransitionRate > totalTransitionRate){
@@ -1159,7 +1157,7 @@ namespace SEIR{
                     nodes[target].m_state = "I";
                     --numE; ++numI;
                     nodes[target].m_transitionRate = I_R;
-                    for (const Size& neighbor : nodes[target].m_neighbors){
+                    for (const unsigned& neighbor : nodes[target].m_neighbors){
                         if (nodes[neighbor].m_state == "S"){
                             reactingIndex.emplace(neighbor);
                             nodes[neighbor].m_transitionRate += SI_EI;
@@ -1172,7 +1170,7 @@ namespace SEIR{
                     nodes[target].m_state = "R";
                     --numI; ++numR;
                     nodes[target].m_transitionRate = 0.0;
-                    for (const Size& neighbor : nodes[target].m_neighbors){
+                    for (const unsigned& neighbor : nodes[target].m_neighbors){
                         if (nodes[neighbor].m_state == "S"){
                             nodes[neighbor].m_transitionRate -= SI_EI;
                             if (!nodes[neighbor].m_transitionRate){
@@ -1249,12 +1247,12 @@ namespace GSEIR{
     //* pre-defined Parameters
     const std::string rootDirectory = "../data/epidemics/GSEIR/";
     std::map<std::string, int> stateToInt = {{"S", 0}, {"E",1}, {"I",2}, {"R",3}};
-    Size seedSize;
+    unsigned seedSize;
 
     //* Network parameters
     std::string networkType;
-    Size networkSize;
-    Size meanDegree;
+    unsigned networkSize;
+    unsigned meanDegree;
     std::vector<Node_Epidemic> nodes;
 
     //* GSEIR rate parameter
@@ -1280,7 +1278,7 @@ namespace GSEIR{
         meanDegree = t_network.m_meanDegree;
 
         nodes.clear(); nodes.reserve(networkSize);
-        for (Size index=0; index<networkSize; ++index){
+        for (unsigned index=0; index<networkSize; ++index){
             Node_Epidemic node(index, "S");
             node.m_neighbors = t_network.m_adjacency[index];
             nodes.emplace_back(node);
@@ -1288,7 +1286,7 @@ namespace GSEIR{
     }
 
     //* Set rate parameters
-    void setRate(const double& t_SE_EE, const double& t_SI_EI, const double& t_E_I, const double& t_I_R, const Size& t_seedSize=1){
+    void setRate(const double& t_SE_EE, const double& t_SI_EI, const double& t_E_I, const double& t_I_R, const unsigned& t_seedSize=1){
         SE_EE = t_SE_EE;
         SI_EI = t_SI_EI;
         E_I = t_E_I;
@@ -1304,7 +1302,7 @@ namespace GSEIR{
         const double deltaT = 1e-2;
 
         //* Parameters used for RK4
-        Size iteration;
+        unsigned iteration;
         std::vector<double> recentR;
         double currentTime;
         double ratioS;
@@ -1406,19 +1404,19 @@ namespace GSEIR{
     //* Simulate GSEIR model using Gillespi Algorithm
     namespace GA{
         //* Parameters used for GA
-        std::set<Size> reactingIndex;
+        std::set<unsigned> reactingIndex;
         double deltaT, currentTime;
-        Size numS, numE, numI, numR;
+        unsigned numS, numE, numI, numR;
 
         //* Update transition rate of single node
-        void updateTransitionRate(const Size& t_index){
+        void updateTransitionRate(const unsigned& t_index){
             const int intState = stateToInt[nodes[t_index].m_state];
             switch (intState){
                 //* S process
                 case 0:{
-                    Size exposedNeighbor = 0;
-                    Size infectiousNeighbor = 0;
-                    for (const Size& neighbor : nodes[t_index].m_neighbors){
+                    unsigned exposedNeighbor = 0;
+                    unsigned infectiousNeighbor = 0;
+                    for (const unsigned& neighbor : nodes[t_index].m_neighbors){
                         if (nodes[neighbor].m_state == "E"){
                             ++exposedNeighbor;
                         }
@@ -1450,7 +1448,7 @@ namespace GSEIR{
 
         //* Update transition rate of all reacting nodes
         void updateTransitionRate(){
-            for (const Size& index : reactingIndex){
+            for (const unsigned& index : reactingIndex){
                 updateTransitionRate(index);
             }
         }
@@ -1466,10 +1464,10 @@ namespace GSEIR{
             numI = seedSize;
             numR = 0;
             reactingIndex.clear();
-            for (Size index=0; index<seedSize; ++index){
+            for (unsigned index=0; index<seedSize; ++index){
                 nodes[index].m_state = "I";
                 reactingIndex.emplace(index);
-                for (const Size& neighbor : nodes[index].m_neighbors){
+                for (const unsigned& neighbor : nodes[index].m_neighbors){
                     reactingIndex.emplace(neighbor);
                 }
             }
@@ -1481,8 +1479,8 @@ namespace GSEIR{
             deltaT = 1e-1;
 
             //* Do reactions according to each transition rate and add E,I into reacting nodes
-            std::set<Size> newReactingIndex;
-            for (const Size& index : reactingIndex){
+            std::set<unsigned> newReactingIndex;
+            for (const unsigned& index : reactingIndex){
                 const int intState = stateToInt[nodes[index].m_state];
                 const double transitionProb = 1.0-std::exp(-1.0*nodes[index].m_transitionRate*deltaT);
                 switch (intState){
@@ -1522,8 +1520,8 @@ namespace GSEIR{
 
             //* Add neighbor of S of E,I node into reacting nodes
             reactingIndex = newReactingIndex;
-            for (const Size& index : newReactingIndex){
-                for (const Size& neighbor : nodes[index].m_neighbors){
+            for (const unsigned& index : newReactingIndex){
+                for (const unsigned& neighbor : nodes[index].m_neighbors){
                     if (nodes[neighbor].m_state == "S"){
                         reactingIndex.emplace(neighbor);
                     }
@@ -1540,18 +1538,18 @@ namespace GSEIR{
         void asyncUpdate(){
             //* Calculate total transition rate and Delta time
             double totalTransitionRate = 0.0;
-            for (const Size& index : reactingIndex){
+            for (const unsigned& index : reactingIndex){
                 totalTransitionRate += nodes[index].m_transitionRate;
             }
             deltaT = std::log(1.0/probabilityDistribution(randomEngine))/totalTransitionRate;
             totalTransitionRate *= probabilityDistribution(randomEngine);
 
             //* Choose target node to be reacted
-            std::vector<Size> shuffledReactingIndex(reactingIndex.begin(), reactingIndex.end());
+            std::vector<unsigned> shuffledReactingIndex(reactingIndex.begin(), reactingIndex.end());
             std::shuffle(shuffledReactingIndex.begin(), shuffledReactingIndex.end(), randomEngine);
             double cumulativeTransitionRate = 0.0;
-            Size target;
-            for (Size i=0; i<shuffledReactingIndex.size(); ++i){
+            unsigned target;
+            for (unsigned i=0; i<shuffledReactingIndex.size(); ++i){
                 target = shuffledReactingIndex[i];
                 cumulativeTransitionRate += nodes[target].m_transitionRate;
                 if (cumulativeTransitionRate > totalTransitionRate){
@@ -1567,7 +1565,7 @@ namespace GSEIR{
                     nodes[target].m_state = "E";
                     --numS; ++numE;
                     nodes[target].m_transitionRate = E_I;
-                    for (const Size& neighbor : nodes[target].m_neighbors){
+                    for (const unsigned& neighbor : nodes[target].m_neighbors){
                         if (nodes[neighbor].m_state == "S"){
                             nodes[neighbor].m_transitionRate += SE_EE;
                             reactingIndex.emplace(neighbor);
@@ -1580,7 +1578,7 @@ namespace GSEIR{
                     nodes[target].m_state = "I";
                     --numE; ++numI;
                     nodes[target].m_transitionRate = I_R;
-                    for (const Size& neighbor : nodes[target].m_neighbors){
+                    for (const unsigned& neighbor : nodes[target].m_neighbors){
                         if (nodes[neighbor].m_state == "S"){
                             nodes[neighbor].m_transitionRate += SI_EI - SE_EE;
                             reactingIndex.emplace(neighbor);
@@ -1594,7 +1592,7 @@ namespace GSEIR{
                     --numI; ++numR;
                     nodes[target].m_transitionRate = 0.0;
                     reactingIndex.erase(target);
-                    for (const Size& neighbor : nodes[target].m_neighbors){
+                    for (const unsigned& neighbor : nodes[target].m_neighbors){
                         if (nodes[neighbor].m_state == "S"){
                             nodes[neighbor].m_transitionRate -= SI_EI;
                             if (!nodes[neighbor].m_transitionRate){
