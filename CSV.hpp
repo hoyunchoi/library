@@ -39,7 +39,7 @@ namespace CSV{
             writeFile.precision(precision);
         }
         for (const std::vector<T>& row : t_data){
-            for (int i=0; i<row.size()-1; ++i){
+            for (unsigned i=0; i<row.size()-1; ++i){
                 writeFile << row[i] << t_seperate;
             }
             writeFile << row.back()<<"\n";
