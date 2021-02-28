@@ -9,32 +9,13 @@
 
 
 namespace linearAlgebra{
-template<typename T>
-void print(const std::vector<T>& t_vec){
-    std::cout<<"(";
-    for (int i=0; i<t_vec.size(); ++i){
-        std::cout<<t_vec[i]<<", ";
-    }
-    std::cout<<")\n";
-}
-
-template<typename T>
-void print(const std::vector<std::vector<T>>& t_mat){
-    for (int i=0; i<t_mat.size(); ++i){
-        for (int j=0; j<t_mat[0].size(); ++j){
-            std::cout<<t_mat[i][j]<<"\t";
-        }
-        std::cout<<"\n";
-    }
-}
-
 //* transpose matrix
 template<typename T>
 std::vector<std::vector<T>> transpose(const std::vector<std::vector<T>>& t_mat){
     std::vector<std::vector<T>> result;
     result.resize(t_mat[0].size(),std::vector<T>(t_mat.size()));
-    for (int i=0; i<t_mat.size(); ++i){
-        for (int j=0; j<t_mat[0].size();++j){
+    for (unsigned i=0; i<t_mat.size(); ++i){
+        for (unsigned j=0; j<t_mat[0].size();++j){
             result[j][i]=t_mat[i][j];
         }
     }
@@ -50,7 +31,7 @@ std::vector<T> operator+ (const std::vector<T>& t_vec1, const std::vector<T>& t_
     }
 
     std::vector<T> result(t_vec1.size());
-    for (int i=0; i<t_vec1.size(); ++i){
+    for (unsigned i=0; i<t_vec1.size(); ++i){
         result[i]=t_vec1[i]+t_vec2[i];
     }
     return result;
@@ -61,7 +42,7 @@ std::vector<T>& operator+= (std::vector<T>& t_vec1, const std::vector<T>& t_vec2
         std::cout<<"In plus operation, two vectors have different length"<<std::endl;
         exit(1);
     }
-    for (int i=0; i<t_vec1.size(); ++i){
+    for (unsigned i=0; i<t_vec1.size(); ++i){
         t_vec1[i]+=t_vec2[i];
     }
     return t_vec1;
@@ -74,9 +55,8 @@ std::vector<T> operator- (const std::vector<T>& t_vec1, const std::vector<T>& t_
         std::cout<<"In plus operation, two vectors have different length"<<std::endl;
         exit(1);
     }
-    const int n=t_vec1.size();
-    std::vector<T> result(n);
-    for (int i=0; i<n; ++i){
+    std::vector<T> result(t_vec1.size());
+    for (unsigned i=0; i<t_vec1.size(); ++i){
         result[i]=t_vec1[i]-t_vec2[i];
     }
     return result;
@@ -87,7 +67,7 @@ std::vector<T>& operator-= (std::vector<T>& t_vec1, const std::vector<T>& t_vec2
         std::cout<<"In plus operation, two vectors have different length"<<std::endl;
         exit(1);
     }
-    for (int i=0; i<t_vec1.size(); ++i){
+    for (unsigned i=0; i<t_vec1.size(); ++i){
         t_vec1[i]-=t_vec2[i];
     }
     return t_vec1;
@@ -103,8 +83,8 @@ std::vector<std::vector<T>> operator+ (const std::vector<std::vector<T>>& t_mat1
     }
     std::vector<std::vector<T>> result;
     result.resize(t_mat1.size(),std::vector<T>(t_mat1[0].size()));
-    for (int i=0; i<t_mat1.size(); ++i){
-        for (int j=0; j<t_mat1[0].size(); ++j){
+    for (unsigned i=0; i<t_mat1.size(); ++i){
+        for (unsigned j=0; j<t_mat1[0].size(); ++j){
             result[i][j]=t_mat1[i][j]+t_mat2[i][j];
         }
     }
@@ -117,8 +97,8 @@ std::vector<std::vector<T>>& operator+= (std::vector<std::vector<T>>& t_mat1,
         std::cout<<"In plus operation, two matrices have different size"<<std::endl;
         exit(1);
     }
-    for (int i=0; i<t_mat1.size(); ++i){
-        for (int j=0; j<t_mat1[0].size(); ++j){
+    for (unsigned i=0; i<t_mat1.size(); ++i){
+        for (unsigned j=0; j<t_mat1[0].size(); ++j){
             t_mat1[i][j]+=t_mat2[i][j];
         }
     }
@@ -136,8 +116,8 @@ std::vector<std::vector<T>> operator- (const std::vector<std::vector<T>>& t_mat1
 
     std::vector<std::vector<T>> result;
     result.resize(t_mat1.size(),std::vector<T>(t_mat1[0].size()));
-    for (int i=0; i<t_mat1.size(); ++i){
-        for (int j=0; j<t_mat1[0].size(); ++j){
+    for (unsigned i=0; i<t_mat1.size(); ++i){
+        for (unsigned j=0; j<t_mat1[0].size(); ++j){
             result[i][j]=t_mat1[i][j]-t_mat2[i][j];
         }
     }
@@ -150,7 +130,7 @@ std::vector<std::vector<T>>& operator-= (std::vector<std::vector<T>>& t_mat1,
         std::cout<<"In plus operation, two matrices have different size"<<std::endl;
         exit(1);
     }
-    for (int i=0; i<t_mat1.size(); ++i){
+    for (unsigned i=0; i<t_mat1.size(); ++i){
         t_mat1[i]-=t_mat2[i];
     }
     return t_mat1;
@@ -160,9 +140,10 @@ std::vector<std::vector<T>>& operator-= (std::vector<std::vector<T>>& t_mat1,
 //* const * vector -> vector
 template<typename T, typename TT>
 std::vector<T> operator*(const TT& c, const std::vector<T>& t_vec){
-    std::vector<T> result(t_vec.size());
-    for (int i=0; i<t_vec.size(); ++i){
-        result[i]=c*t_vec[i];
+    std::vector<T> result;
+    result.reserve(t_vec.size());
+    for (const T& e : t_vec){
+        result.emplace_back(c * e);
     }
     return result;
 }
@@ -181,12 +162,12 @@ std::vector<T>& operator*=(std::vector<T>& t_vec, const TT& c){
 //* const * matrix -> matrix
 template<typename T, typename TT>
 std::vector<std::vector<T>> operator*(const TT& c, const std::vector<std::vector<T>>& t_mat){
-    const int n=t_mat.size();
-    const int m=t_mat[0].size();
+    const unsigned n=t_mat.size();
+    const unsigned m=t_mat[0].size();
     std::vector<std::vector<T>> result;
     result.resize(n,std::vector<T>(m));
-    for (int i=0; i<n; ++i){
-        for (int j=0; j<m; ++j){
+    for (unsigned i=0; i<n; ++i){
+        for (unsigned j=0; j<m; ++j){
             result[i][j]=c*t_mat[i][j];
         }
     }
@@ -209,7 +190,7 @@ std::vector<std::vector<T>>& operator*= (std::vector<std::vector<T>>& t_mat, con
 template<typename T, typename TT>
 std::vector<T> operator/(const std::vector<T>& t_vec, const TT& c){
     std::vector<T> result(t_vec.size());
-    for (int i=0; i<t_vec.size(); ++i){
+    for (unsigned i=0; i<t_vec.size(); ++i){
         result[i] = t_vec[i]/c;
     }
     return result;
@@ -229,8 +210,8 @@ std::vector<std::vector<T>> operator/(const std::vector<std::vector<T>>& t_mat, 
     const int m=t_mat[0].size();
     std::vector<std::vector<T>> result;
     result.resize(n,std::vector<T>(m));
-    for (int i=0; i<n; ++i){
-        for (int j=0; j<m; ++j){
+    for (unsigned i=0; i<n; ++i){
+        for (unsigned j=0; j<m; ++j){
             result[i][j] = t_mat[i][j]/c;
         }
     }
@@ -247,9 +228,9 @@ std::vector<std::vector<T>>& operator/= (std::vector<std::vector<T>>& t_mat, con
 //* vector + c -> vector
 template<typename T, typename TT>
 std::vector<T> operator+(const std::vector<T>& t_vec, const TT& c){
-    const int n=t_vec.size();
+    const unsigned n=t_vec.size();
     std::vector<T> result(n);
-    for (int i=0; i<n; ++i){
+    for (unsigned i=0; i<n; ++i){
         result[i]=t_vec[i]+c;
     }
     return result;
@@ -266,7 +247,7 @@ std::vector<T>& operator+= (std::vector<T>& t_vec, const TT& c){
 template<typename T, typename TT>
 std::vector<T> operator-(const std::vector<T>& t_vec, const TT& c){
     std::vector<T> result(t_vec.size());
-    for (int i=0; i<t_vec.size(); ++i){
+    for (unsigned i=0; i<t_vec.size(); ++i){
         result[i]=t_vec[i]-c;
     }
     return result;
@@ -274,7 +255,7 @@ std::vector<T> operator-(const std::vector<T>& t_vec, const TT& c){
 template <typename T, typename TT>
 std::vector<T> operator- (const TT&c, const std::vector<T>& t_vec){
     std::vector<T> result(t_vec.size());
-    for (int i=0; i<t_vec.size(); ++i){
+    for (unsigned i=0; i<t_vec.size(); ++i){
         result[i]=c-t_vec[i];
     }
     return result;
@@ -290,12 +271,12 @@ std::vector<T>& operator-= (std::vector<T>& t_vec, const TT& c){
 //* const + matrix -> matrix
 template<typename T, typename TT>
 std::vector<std::vector<T>> operator+(const std::vector<std::vector<T>>& t_mat, const TT& c){
-    const int n=t_mat.size();
-    const int m=t_mat[0].size();
+    const unsigned n=t_mat.size();
+    const unsigned m=t_mat[0].size();
     std::vector<std::vector<T>> result;
     result.resize(n,std::vector<T>(m));
-    for (int i=0; i<n; ++i){
-        for (int j=0; j<m; ++j){
+    for (unsigned i=0; i<n; ++i){
+        for (unsigned j=0; j<m; ++j){
             result[i][j]=t_mat[i][j]+c;
         }
     }
@@ -312,12 +293,12 @@ std::vector<std::vector<T>>& operator+= (std::vector<std::vector<T>>& t_mat, con
 //* matrix - const -> matrix
 template<typename T, typename TT>
 std::vector<std::vector<T>> operator-(const std::vector<std::vector<T>>& t_mat, const TT& c){
-    const int n=t_mat.size();
-    const int m=t_mat[0].size();
+    const unsigned n=t_mat.size();
+    const unsigned m=t_mat[0].size();
     std::vector<std::vector<T>> result;
     result.resize(n,std::vector<T>(m));
-    for (int i=0; i<n; ++i){
-        for (int j=0; j<m; ++j){
+    for (unsigned i=0; i<n; ++i){
+        for (unsigned j=0; j<m; ++j){
             result[i][j]=t_mat[i][j]-c;
         }
     }
@@ -335,13 +316,12 @@ std::vector<std::vector<T>>& operator-= (std::vector<std::vector<T>>& t_mat, con
 //* vector dot vector -> const
 template<typename T>
 T innerProduct(const std::vector<T>& t_vec1, const std::vector<T>& t_vec2){
-    // Check two vectors have same length
     if (t_vec1.size()!=t_vec2.size()){
         std::cout<<"In inner product, two vectors have different size"<<std::endl;
         exit(1);
     }
     T result=0;
-    for (int i=0; i<t_vec1.size(); ++i){
+    for (unsigned i=0; i<t_vec1.size(); ++i){
         result+=t_vec1[i]*t_vec2[i];
     }
     return result;
@@ -350,12 +330,12 @@ T innerProduct(const std::vector<T>& t_vec1, const std::vector<T>& t_vec2){
 //* vector * vector -> matrix
 template<typename T>
 std::vector<std::vector<T>> product(const std::vector<T>& t_vec1, const std::vector<T>& t_vec2){
-    const int n=t_vec1.size();
-    const int m=t_vec2.size();
+    const unsigned n=t_vec1.size();
+    const unsigned m=t_vec2.size();
     std::vector<std::vector<T>> result;
     result.resize(n,std::vector<T>(m));
-    for (int i=0; i<n; ++i){
-        for (int j=0; j<m; ++j){
+    for (unsigned i=0; i<n; ++i){
+        for (unsigned j=0; j<m; ++j){
             result[i][j]=t_vec1[i]*t_vec2[j];
         }
     }
@@ -373,11 +353,11 @@ std::vector<T> product(const std::vector<std::vector<T>>& t_mat, const std::vect
         std::cout<<"In product between matrix and vector, size is different"<<std::endl;
         exit(1);
     }
-    const int n=t_mat.size();
-    const int m=t_mat[0].size();
+    const unsigned n=t_mat.size();
+    const unsigned m=t_mat[0].size();
     std::vector<T> result(n);
-    for (int i=0; i<n; ++i){
-        for (int j=0; j<m; ++j){
+    for (unsigned i=0; i<n; ++i){
+        for (unsigned j=0; j<m; ++j){
             result[i]+=t_mat[i][j]*t_vec[j];
         }
     }
@@ -395,17 +375,17 @@ std::vector<std::vector<T>> product(const std::vector<std::vector<T>>& t_mat1, c
         std::cout<<"In product between matrix and matrix, size is different"<<std::endl;
         exit(1);
     }
-    const int n=t_mat1.size();
-    const int m=t_mat2[0].size();
-    const int k_max=t_mat2.size();
+    const unsigned n=t_mat1.size();
+    const unsigned m=t_mat2[0].size();
+    const unsigned k_max=t_mat2.size();
     std::vector<std::vector<T>> result;
     result.resize(n,std::vector<T>(m));
 
     std::vector<std::vector<T>> tempMatrix=transpose(t_mat2);
-    for (int i=0; i<n; ++i){
-        for (int j=0; j<m; ++j){
+    for (unsigned i=0; i<n; ++i){
+        for (unsigned j=0; j<m; ++j){
             T temp=0;
-            for (int k=0; k<k_max; ++k){
+            for (unsigned k=0; k<k_max; ++k){
                 temp+=t_mat1[i][k]*tempMatrix[j][k];
             }
             result[i][j]=temp;
@@ -426,9 +406,9 @@ std::vector<T> elementProduct(const std::vector<T>& t_vec1, const std::vector<T>
         std::cout<<"In inner product, two vectors have different size"<<std::endl;
         exit(1);
     }
-    const int n=t_vec1.size();
+    const unsigned n=t_vec1.size();
     std::vector<T> result(n);
-    for (int i=0; i<n; ++i){
+    for (unsigned i=0; i<n; ++i){
         result[i]=t_vec1[i]*t_vec2[i];
     }
     return result;
@@ -440,12 +420,12 @@ std::vector<std::vector<T>> elementProduct(const std::vector<std::vector<T>>& t_
         std::cout<<"In plus operation, two matrices have different size"<<std::endl;
         exit(1);
     }
-    const int n=t_mat1.size();
-    const int m=t_mat1[0].size();
+    const unsigned n=t_mat1.size();
+    const unsigned m=t_mat1[0].size();
     std::vector<std::vector<T>> result;
     result.resize(n,std::vector<T>(m));
-    for (int i=0; i<n; i++){
-        for (int j=0; j<m; ++j){
+    for (unsigned i=0; i<n; i++){
+        for (unsigned j=0; j<m; ++j){
             result[i][j]=t_mat1[i][j]*t_mat2[i][j];
         }
     }
@@ -481,10 +461,10 @@ std::vector<T> elementPow(const TT& c, const std::vector<T>& t_vec){
 }
 
 //* Include t_begin, t_end
-std::vector<double> linspace(const double& t_begin, const double& t_end, const int& t_size){
+std::vector<double> linspace(const double& t_begin, const double& t_end, const unsigned& t_size){
     std::vector<double> result(t_size);
     const double delta = (t_end-t_begin)/(t_size-1);
-    for (int i=0; i<t_size; ++i){
+    for (unsigned i=0; i<t_size; ++i){
         result[i] = delta*i + t_begin;
     }
     return result;
@@ -493,9 +473,13 @@ std::vector<double> linspace(const double& t_begin, const double& t_end, const i
 //* Include t_begin, t_end
 template<typename T>
 std::vector<T> arange(const T& t_begin, const T& t_end, const T& t_delta){
-    const int size = std::ceil((t_end-t_begin)/t_delta);
+    if (t_begin > t_end){
+        std::cout<<"In arange, input values are not ordered\n";
+        exit(1);
+    }
+    const unsigned size = std::ceil((t_end-t_begin)/t_delta);
     std::vector<T> result(size);
-    for (int i=0; i<size; ++i){
+    for (unsigned i=0; i<size; ++i){
         result[i] = t_begin + t_delta*i;
     }
     result.emplace_back(t_end);
@@ -507,8 +491,8 @@ std::vector<T> arange(const T& t_begin, const T& t_end, const T& t_delta){
 //* map += map
 template<typename T, typename TT, typename TTT>
 std::map<T,TT> operator+= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2){
-    for (auto it=t_map2.begin(); it != t_map2.end(); ++it){
-        t_map1[it->first] += it->second;
+    for (const auto& e : t_map2){
+        t_map1[e.first] += e.second;
     }
     return t_map1;
 }
@@ -516,8 +500,8 @@ std::map<T,TT> operator+= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2
 //* map -= map
 template<typename T, typename TT, typename TTT>
 std::map<T,TT> operator-= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2){
-    for (auto it=t_map2.begin(); it != t_map2.end(); ++it){
-        t_map1[it->first] -= it->second;
+    for (const auto& e : t_map2){
+        t_map1[e.first] -= e.second;
     }
     return t_map1;
 }
@@ -526,8 +510,8 @@ std::map<T,TT> operator-= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2
 template<typename T, typename TT>
 std::map<T,TT> minus_first(const T& t_c, const std::map<T,TT>& t_map){
     std::map<T,TT> result;
-    for (auto it=t_map.begin(); it != t_map.end(); ++it){
-        result[t_c-it->first] = it->second;
+    for (const auto& e : t_map){
+        result[t_c - e.first] = e.second;
     }
     return result;
 }
@@ -535,8 +519,8 @@ std::map<T,TT> minus_first(const T& t_c, const std::map<T,TT>& t_map){
 template<typename T, typename TT>
 std::map<T,TT> minus_second(const TT& t_c, const std::map<T,TT>& t_map){
     std::map<T,TT> result;
-    for (auto it=t_map.begin(); it != t_map.end(); ++it){
-        result[it->first] = t_c-it->second;
+    for (const auto& e : t_map){
+        result[e.first] = t_c - e.second;
     }
     return result;
 }
@@ -545,8 +529,8 @@ std::map<T,TT> minus_second(const TT& t_c, const std::map<T,TT>& t_map){
 template<typename T, typename TT>
 std::map<T,TT> minus_first(const std::map<T,TT>& t_map, const T& t_c){
     std::map<T,TT> result;
-    for (auto it=t_map.begin(); it != t_map.end(); ++it){
-        result[it->first-t_c] = it->second;
+    for (const auto& e : t_map){
+        result[e.first - t_c] = e.second;
     }
     return result;
 }
@@ -554,29 +538,26 @@ std::map<T,TT> minus_first(const std::map<T,TT>& t_map, const T& t_c){
 template<typename T, typename TT>
 std::map<T,TT> minus_second(const std::map<T,TT>& t_map, const T& t_c){
     std::map<T,TT> result;
-    for (auto it=t_map.begin(); it != t_map.end(); ++it){
-        result[it->first] = it->second-t_c;
+    for (const auto& e : t_map){
+        result[e.first] = e.second - t_c;
     }
     return result;
 }
 
-
-
 //* map *= map
 template<typename T, typename TT, typename TTT>
 std::map<T,TT> operator*= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2){
-    for (auto it=t_map2.begin(); it!=t_map2.end(); ++it){
-        t_map1[it->first] *= it->second;
+    for (const auto& e : t_map2){
+        t_map1[e.first] *= e.second;
     }
     return t_map1;
 }
 
-
 //* map /= map
 template<typename T, typename TT, typename TTT>
 std::map<T,TT> operator/= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2){
-    for (auto it=t_map2.begin(); it!=t_map2.end(); ++it){
-        t_map1[it->first] /= it->second;
+    for (const auto& e : t_map2){
+        t_map1[e.first] /= e.second;
     }
     return t_map1;
 }
@@ -584,8 +565,8 @@ std::map<T,TT> operator/= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2
 //* map /= const
 template<typename T, typename TT, typename TTT>
 std::map<T,TT> operator/= (std::map<T,TT>& t_map, const TTT& t_c){
-    for (auto it=t_map.begin(); it != t_map.end(); ++it){
-        it->second /= t_c;
+    for (auto& e : t_map){
+        e.second /= t_c;
     }
     return t_map;
 }
@@ -595,8 +576,8 @@ std::map<T,TT> operator/= (std::map<T,TT>& t_map, const TTT& t_c){
 //* plus 1 to the 'value' of t_map1['key'] for every 'key' inside t_map2
 template<typename T, typename TT>
 void sampleNum(std::map<T,int>& t_map1, const std::map<T,TT>& t_map2){
-    for (auto it=t_map2.begin(); it!=t_map2.end(); ++it){
-        ++t_map1[it->first];
+    for (const auto& e : t_map2){
+        ++t_map1[e.first];
     }
 }
 
@@ -604,20 +585,37 @@ void sampleNum(std::map<T,int>& t_map1, const std::map<T,TT>& t_map2){
 template<typename T, typename TT>
 TT accumulate(const std::map<T,TT>& t_map){
     TT result = 0;
-    for (auto it=t_map.begin(); it != t_map.end(); ++it){
-        result += it->second;
+    for (const auto& e : t_map){
+        result += e.second;
     }
     return result;
 }
 
-//* print map
-template<typename T, typename TT>
-void print(const std::map<T,TT>& t_map){
-    std::cout<<"[";
-    for (auto it=t_map.begin(); it != t_map.end(); ++it){
-        std::cout<<"("<<it->first<<", "<<it->second<<"), ";
+//* print
+template<typename T>
+void print(const std::vector<T>& t_vec, const char& t_seperate=','){
+    std::cout<<"(";
+    for (const T& e : t_vec){
+        std::cout << e << t_seperate;
     }
-    std::cout<<"]\n";
+    std::cout<<")\n";
+}
+
+template<typename T>
+void print(const std::vector<std::vector<T>>& t_mat, const char& t_seperate=','){
+    for (const std::vector<T>& vec : t_mat){
+        for (const T& e : vec){
+            std::cout << e << t_seperate;
+        }
+        std::cout << "\n";
+    }
+}
+
+template<typename T, typename TT>
+void print(const std::map<T,TT>& t_map, const char& t_seperate=','){
+    for (const auto& e : t_map){
+        std::cout << e.first << "," <<e.second << "\n";
+    }
 }
 
 }//* End of namespace linearAlgebra
