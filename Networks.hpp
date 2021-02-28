@@ -15,19 +15,15 @@
 #include "pcg_random.hpp"
 #include "linearAlgebra.hpp"
 
-using Size = unsigned;
-using Adjacency = std::vector<std::set<Size>>;
-using WAdjacency = std::vector<std::map<Size, double>>;
-
 struct Node
 {
     //* Member variables
-    Size m_index;
-    std::set<Size> m_neighbors;
+    unsigned m_index;
+    std::set<unsigned> m_neighbors;
 
     //* Constructor
     Node(){}
-    Node(const Size& t_index) : m_index(t_index){}
+    Node(const unsigned& t_index) : m_index(t_index){}
 
     //* Comparison operators
     bool operator== (const Node& t_node) const {
@@ -43,15 +39,15 @@ struct Network
 {
     //* Member variables
     std::string m_type;
-    Size m_size{0};
-    Size m_linkSize{0};
+    unsigned m_size{0};
+    unsigned m_linkSize{0};
     double m_meanDegree{0.0};
-    Adjacency m_adjacency;
+    std::vector<std::set<unsigned>> m_adjacency;
 
     //* Constructor
     Network(){}
-    Network(const Size& t_size) : m_size(t_size){
-        m_adjacency.assign(t_size, std::set<Size>());
+    Network(const unsigned& t_size) : m_size(t_size){
+        m_adjacency.assign(t_size, std::set<unsigned>());
     }
 
     //* Reset the whole network withiout size information
@@ -66,7 +62,7 @@ struct Network
     }
 
     //* Whether link is already exists
-    bool linkExists(const Size& t_index1, const Size& t_index2) const {
+    bool linkExists(const unsigned& t_index1, const unsigned& t_index2) const {
         if (m_adjacency[t_index1].size() <= m_adjacency[t_index2].size()){
             const auto candidates = m_adjacency[t_index1];
             auto it = candidates.find(t_index2);
@@ -80,7 +76,7 @@ struct Network
     }
 
     //* Add single link
-    void addLink(const Size& t_index1, const Size& t_index2){
+    void addLink(const unsigned& t_index1, const unsigned& t_index2){
         //* Update linksize information
         if (!linkExists(t_index1, t_index2)){
             ++m_linkSize;
@@ -92,7 +88,7 @@ struct Network
     }
 
     //* Delete single link
-    void deleteLink(const Size& t_index1, const Size& t_index2){
+    void deleteLink(const unsigned& t_index1, const unsigned& t_index2){
         //* Update linksize information
         if (linkExists(t_index1, t_index2)){
             --m_linkSize;
@@ -106,12 +102,12 @@ struct Network
     //* Print total information of network
     void print(){
         std::cout << "Network Type: " << m_type << "\n";
-        std::cout << "Network Size: " << m_size << "\n";
-        std::cout << "Total Link Size: " << m_linkSize << "\n";
+        std::cout << "Network unsigned: " << m_size << "\n";
+        std::cout << "Total Link unsigned: " << m_linkSize << "\n";
         std::cout << "Adjacency Matrix\n";
-        for (Size i=0; i<m_size; ++i){
+        for (unsigned i=0; i<m_size; ++i){
             std::cout << i << ": ";
-            for (const Size& neighbor : m_adjacency[i]){
+            for (const unsigned& neighbor : m_adjacency[i]){
                 std::cout << neighbor << ", ";
             }
             std::cout << "\n";
@@ -122,11 +118,11 @@ struct Network
 
 //* Erdos-Renyi network
 namespace ER{
-    Network generate(const Size& t_size, const double& t_probability, pcg32& t_randomEngine){
+    Network generate(const unsigned& t_size, const double& t_probability, pcg32& t_randomEngine){
         Network ER(t_size);
         std::uniform_real_distribution<double> probabilityDistribution(0, 1);
-        for (Size index1 = 0; index1 < t_size; ++index1){
-            for (Size index2 = index1+1; index2 < t_size; ++index2){
+        for (unsigned index1 = 0; index1 < t_size; ++index1){
+            for (unsigned index2 = index1+1; index2 < t_size; ++index2){
                 if (probabilityDistribution(t_randomEngine)){
                     ER.addLink(index1, index2);
                 }
@@ -137,11 +133,11 @@ namespace ER{
         return ER;
     }
 
-    Network generate(const Size& t_size, const Size& t_linkSize, pcg32& t_randomEngine){
+    Network generate(const unsigned& t_size, const unsigned& t_linkSize, pcg32& t_randomEngine){
         Network ER(t_size);
         std::uniform_int_distribution<int> indexDistribution(0, t_size - 1);
         while (ER.m_linkSize < t_linkSize){
-            Size index1, index2;
+            unsigned index1, index2;
             do{
                 index1 = indexDistribution(t_randomEngine);
                 index2 = indexDistribution(t_randomEngine);
@@ -157,19 +153,19 @@ namespace ER{
 
 //* Random Regular network
 namespace RR{
-    Network generate(const Size& t_size, const Size& t_degree, pcg32& t_randomEngine){
+    Network generate(const unsigned& t_size, const unsigned& t_degree, pcg32& t_randomEngine){
         Network RR(t_size);
-        std::deque<Size> stubs;
-        for (Size index=0; index<t_size; ++index){
-            for (Size degree=0; degree<t_degree; ++degree){
+        std::deque<unsigned> stubs;
+        for (unsigned index=0; index<t_size; ++index){
+            for (unsigned degree=0; degree<t_degree; ++degree){
                 stubs.emplace_back(index);
             }
         }
         std::shuffle(stubs.begin(), stubs.end(), t_randomEngine);
         while (!stubs.empty()){
-            Size index1 = stubs.front();
+            unsigned index1 = stubs.front();
             stubs.pop_front();
-            Size index2 = stubs.front();
+            unsigned index2 = stubs.front();
             stubs.pop_front();
             RR.addLink(index1, index2);
         }
@@ -183,17 +179,17 @@ namespace RR{
 
 //* Scale free network
 namespace SF{
-    Size randomPowerLawDistribution(const int& t_lower, const int& t_upper, const double& t_exponent, const double& t_prob){
+    unsigned randomPowerLawDistribution(const int& t_lower, const int& t_upper, const double& t_exponent, const double& t_prob){
         std::uniform_real_distribution<double> probabilityDistribution(0.0, 1.0);
         return std::pow((std::pow(t_upper+0.5, t_exponent+1) - std::pow(t_lower-0.5, t_exponent+1)) * t_prob + std::pow(t_lower-0.5, t_exponent+1), 1.0 / (t_exponent+1)) + 0.5;
     }
 
-    Network generate(const Size& t_size, const Size& t_linkSize, const double& t_degreeExponent, pcg32& t_randomEngine){
+    Network generate(const unsigned& t_size, const unsigned& t_linkSize, const double& t_degreeExponent, pcg32& t_randomEngine){
         Network SF(t_size);
         const double weightExponent = 1.0/(t_degreeExponent-1.0);
         std::uniform_real_distribution<double> probabilityDistribution(0.0, 1.0);
         while(SF.m_linkSize < t_linkSize){
-            Size index1, index2;
+            unsigned index1, index2;
             do{
                 index1 = randomPowerLawDistribution(1, t_size, -weightExponent, probabilityDistribution(t_randomEngine))-1;
                 index2 = randomPowerLawDistribution(1, t_size, -weightExponent, probabilityDistribution(t_randomEngine))-1;
@@ -208,24 +204,24 @@ namespace SF{
 
 //* Scale free network by Chung-Lu
 namespace CL{
-    Size weightSampling (const std::vector<double>& t_weight, const double& t_prob){
-        return (Size) (std::lower_bound(t_weight.begin(), t_weight.end(), t_prob*t_weight.back())-t_weight.begin());
+    unsigned weightSampling (const std::vector<double>& t_weight, const double& t_prob){
+        return (unsigned) (std::lower_bound(t_weight.begin(), t_weight.end(), t_prob*t_weight.back())-t_weight.begin());
     }
 
-    Network generate(const Size& t_size, const Size& t_linkSize, const double& t_degreeExponent, pcg32& t_randomEngine){
+    Network generate(const unsigned& t_size, const unsigned& t_linkSize, const double& t_degreeExponent, pcg32& t_randomEngine){
         Network CL(t_size);
         const double weightExponent = 1.0/(t_degreeExponent-1.0);
         const double correction = weightExponent < 0.5 ? 1.0 : std::pow(10.0*std::sqrt(2.0)*(1.0-weightExponent), 1.0/weightExponent) * std::pow(t_size, 1.0-1.0/(2.0-weightExponent));
 
         std::vector<double> weight(t_size, 0.0);
         weight[0] = std::pow(correction, -1.0*weightExponent);
-        for (Size i=1; i<t_size; ++i){
+        for (unsigned i=1; i<t_size; ++i){
             weight[i] = weight[i-1]+std::pow(i+correction, -1.0*weightExponent);
         }
 
         std::uniform_real_distribution<double> probabilityDistribution(0.0, 1.0);
         while (CL.m_linkSize < t_linkSize){
-            Size index1, index2;
+            unsigned index1, index2;
             do{
                 index1 = weightSampling(weight, probabilityDistribution(t_randomEngine));
                 index2 = weightSampling(weight, probabilityDistribution(t_randomEngine));
@@ -242,12 +238,12 @@ namespace CL{
 struct WNode
 {
     //* Member variables
-    Size m_index;
-    std::map<Size, double> m_neighbors;
+    unsigned m_index;
+    std::map<unsigned, double> m_neighbors;
 
     //* Constructor
     WNode(){}
-    WNode(const Size& t_index) : m_index(t_index){}
+    WNode(const unsigned& t_index) : m_index(t_index){}
 
 
     //* Comparison operator
@@ -261,16 +257,16 @@ struct WNetwork
 {
     //* Member variables
     std::string m_type;
-    Size m_size{0};
-    Size m_linkSize{0};
+    unsigned m_size{0};
+    unsigned m_linkSize{0};
     double m_meanDegree{0.0};
-    WAdjacency m_wadjacency;
+    std::vector<std::map<unsigned, double>> m_wadjacency;
 
     //* Constructor
     WNetwork(){}
-    WNetwork(const Size& t_size) : m_size(t_size){
-        m_wadjacency.assign(t_size, std::map<Size, double>());
-        for (Size index=0; index<t_size; ++index){
+    WNetwork(const unsigned& t_size) : m_size(t_size){
+        m_wadjacency.assign(t_size, std::map<unsigned, double>());
+        for (unsigned index=0; index<t_size; ++index){
             m_wadjacency[index][index] = 0.0;
         }
     }
@@ -281,28 +277,28 @@ struct WNetwork
         m_linkSize = 0;
 
         //* Clear adjacency information
-        for (Size index=0; index<m_size; ++index){
+        for (unsigned index=0; index<m_size; ++index){
             m_wadjacency[index].clear();
             m_wadjacency[index][index] = 0.0;
         }
     }
 
     //* Whether link is already exists
-    double getWeight(const Size& t_index1, const Size& t_index2) const {
+    double getWeight(const unsigned& t_index1, const unsigned& t_index2) const {
         if (m_wadjacency[t_index1].size() <= m_wadjacency[t_index2].size()){
-            const std::map<Size, double> candidates = m_wadjacency[t_index1];
+            const std::map<unsigned, double> candidates = m_wadjacency[t_index1];
             const auto it = candidates.find(t_index2);
             return it != candidates.end() ? it->second : 0.0;
         }
         else{
-            const std::map<Size, double> candidates = m_wadjacency[t_index2];
+            const std::map<unsigned, double> candidates = m_wadjacency[t_index2];
             const auto it = candidates.find(t_index1);
             return it != candidates.end() ? it->second : 0.0;
         }
     }
 
     //* Add single link
-    void addLink(const Size& t_index1, const Size& t_index2, const double& t_weight = 1.0){
+    void addLink(const unsigned& t_index1, const unsigned& t_index2, const double& t_weight = 1.0){
         //* Update linksize information
         if (!getWeight(t_index1, t_index2)){
             ++m_linkSize;
@@ -314,7 +310,7 @@ struct WNetwork
     }
 
     //* Delete single link
-    void deleteLink(const Size& t_index1, const Size& t_index2){
+    void deleteLink(const unsigned& t_index1, const unsigned& t_index2){
         //* Get weight information
         const double weight = getWeight(t_index1, t_index2);
 
@@ -334,8 +330,8 @@ struct WNetwork
         if (t_fileName.size()){
             std::ofstream file;
             t_append ? file.open(t_fileName, std::ios_base::app) : file.open(t_fileName);
-            for (Size index=0; index<m_size; ++index){
-                for (Size neighbor=0; neighbor<m_size-1; ++neighbor){
+            for (unsigned index=0; index<m_size; ++index){
+                for (unsigned neighbor=0; neighbor<m_size-1; ++neighbor){
                     neighbor != index ? file << getWeight(index, neighbor) << "," : file << 0 << ",";
                 }
                 index != m_size-1 ? file << getWeight(index, m_size-1) << "\n" : file << 0 << "\n";
@@ -344,8 +340,8 @@ struct WNetwork
         }
         //* File name is not given: print to terminal
         else{
-            for (Size index=0; index<m_size; ++index){
-                for (Size neighbor=0; neighbor<m_size-1; ++neighbor){
+            for (unsigned index=0; index<m_size; ++index){
+                for (unsigned neighbor=0; neighbor<m_size-1; ++neighbor){
                     neighbor != index ? std::cout << getWeight(index, neighbor) << "," : std::cout << 0 << ",";
                 }
                 index != m_size-1 ? std::cout << getWeight(index, m_size-1) << "\n" : std::cout << 0 << "\n";
@@ -359,8 +355,8 @@ struct WNetwork
         if (t_fileName.size()){
             std::ofstream file;
             t_append ? file.open(t_fileName, std::ios_base::app) : file.open(t_fileName);
-            for (Size index=0; index<m_size; ++index){
-                for (Size neighbor=0; neighbor<m_size-1; ++neighbor){
+            for (unsigned index=0; index<m_size; ++index){
+                for (unsigned neighbor=0; neighbor<m_size-1; ++neighbor){
                     (m_wadjacency[index].find(neighbor) != m_wadjacency[index].end() && neighbor != index) ? file << 1 << "," : file << 0 << ",";
                 }
                 (m_wadjacency[index].find(m_size-1) != m_wadjacency[index].end() && m_size-1 != index) ? file << 1 << "\n" : file << 0 << "\n";
@@ -369,8 +365,8 @@ struct WNetwork
         }
         //* File name is not given: print to terminal
         else{
-            for (Size index=0; index<m_size; ++index){
-                for (Size neighbor=0; neighbor<m_size-1; ++neighbor){
+            for (unsigned index=0; index<m_size; ++index){
+                for (unsigned neighbor=0; neighbor<m_size-1; ++neighbor){
                     (m_wadjacency[index].find(neighbor) != m_wadjacency[index].end() && neighbor != index) ? std::cout << 1 << "," : std::cout << 0 << ",";
                 }
                 (m_wadjacency[index].find(m_size-1) != m_wadjacency[index].end() && m_size-1 != index) ? std::cout << 1 << "\n" : std::cout << 0 << "\n";
@@ -384,7 +380,7 @@ struct WNetwork
 
         //* Generate degree distribution
         std::map<int, double> degreeDist;
-        for (Size index=0; index<m_size; ++index){
+        for (unsigned index=0; index<m_size; ++index){
             ++degreeDist[m_wadjacency[index].size()-1];
         }
         degreeDist /= (double)linearAlgebra::accumulate(degreeDist);
@@ -411,7 +407,7 @@ struct WNetwork
 
         //* Generate node weight distribution
         std::map<double, double> nodeWeightDist;
-        for (Size index=0; index<m_size; ++index){
+        for (unsigned index=0; index<m_size; ++index){
             ++nodeWeightDist[m_wadjacency[index].at(index)];
         }
         nodeWeightDist /= linearAlgebra::accumulate(nodeWeightDist);
@@ -435,11 +431,11 @@ struct WNetwork
 
 //* Weighted scale free network by Chung-Lu. Degree distribution and node weight distribution follows same power law
 namespace WCL{
-    Size weightSampling(const std::vector<double>& t_weight, const double& t_prob){
-        return (Size) (std::lower_bound(t_weight.begin(), t_weight.end(), t_prob*t_weight.back())-t_weight.begin());
+    unsigned weightSampling(const std::vector<double>& t_weight, const double& t_prob){
+        return (unsigned) (std::lower_bound(t_weight.begin(), t_weight.end(), t_prob*t_weight.back())-t_weight.begin());
     }
 
-    WNetwork generate(const Size& t_size, const Size& t_meanPopulation, const double& t_meanDegree, const double& t_degreeExponent, const double& t_linkWeightExponent, pcg32& t_randomEngine){
+    WNetwork generate(const unsigned& t_size, const unsigned& t_meanPopulation, const double& t_meanDegree, const double& t_degreeExponent, const double& t_linkWeightExponent, pcg32& t_randomEngine){
         WNetwork CL(t_size);
         //* Genearting conventional scale free network by Chung-Lu
         const double weightExponent = 1.0/(t_degreeExponent-1.0);
@@ -447,13 +443,13 @@ namespace WCL{
 
         std::vector<double> weight(t_size, 0.0);
         weight[0] = std::pow(correction, -1.0*weightExponent);
-        for (Size i=1; i<t_size; ++i){
+        for (unsigned i=1; i<t_size; ++i){
             weight[i] = weight[i-1] + std::pow(i+correction, -1.0*weightExponent);
         }
 
         std::uniform_real_distribution<double> probabilityDistribution(0.0, 1.0);
         while(CL.m_linkSize < t_meanDegree * t_size / 2.0){
-            Size index1, index2;
+            unsigned index1, index2;
             do{
                 index1 = weightSampling(weight, probabilityDistribution(t_randomEngine));
                 index2 = weightSampling(weight, probabilityDistribution(t_randomEngine));
@@ -466,16 +462,16 @@ namespace WCL{
 
         //* Add weight to node and link
         const unsigned long long population = t_size * t_meanPopulation;
-        for (Size index=0; index<t_size; ++index){
+        for (unsigned index=0; index<t_size; ++index){
             //* Add node itself to weighted adjacency matrix
             CL.m_wadjacency[index][index] = 0.0;
 
             //* Get weight of node and link
-            const Size degree = CL.m_wadjacency[index].size() - 1;
+            const unsigned degree = CL.m_wadjacency[index].size() - 1;
             const double nodeWeight = degree / (2.0 * CL.m_linkSize);
-            std::map<Size, double> linkWeight;
+            std::map<unsigned, double> linkWeight;
             for (auto it = CL.m_wadjacency[index].begin(); it != CL.m_wadjacency[index].end(); ++it){
-                const Size neighbor = it->first;
+                const unsigned neighbor = it->first;
                 if (neighbor != index){
                     const int neighborDegree = CL.m_wadjacency[neighbor].size() - 1;
                     linkWeight[neighbor] = std::pow(degree * neighborDegree, t_linkWeightExponent);
