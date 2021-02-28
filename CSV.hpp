@@ -189,7 +189,35 @@ namespace CSV{
                 if (i%2==1){
                     t_data[std::stoi(key)]=std::stod(value);
                 }
-                key=value;
+                else{
+                    key=value;
+                }
+                ++i;
+            }
+        }
+    }
+
+    void read(const std::string& readFileName, std::map<std::pair<int, int>, double>& t_data, const char t_seperate = ','){
+        std::ifstream readFile(readFileName);
+        if (readFile.fail()){
+            std::cout << "No such file: " << readFileName << std::endl;
+            exit(1);
+        }
+        t_data.clear();
+        std::string row, firstKey, secondKey, value;
+        while (getline(readFile, row)){
+            std::stringstream rowstream(row);
+            int i=0;
+            while (getline(rowstream, value, t_seperate)){
+                if (i%3 == 0){
+                    firstKey = value;
+                }
+                else if (i%3 == 1){
+                    secondKey = value;
+                }
+                else{
+                    t_data[std::make_pair(std::stoi(firstKey), std::stoi(secondKey))] = std::stod(value);
+                }
                 ++i;
             }
         }
