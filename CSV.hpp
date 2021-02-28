@@ -23,6 +23,17 @@ namespace CSV{
         }
     }
 
+    template<typename T, typename TT, typename TTT>
+    void write(const std::string& t_writeFileName, const std::map<std::pair<T,TT>, TTT>& t_data, const char t_seperate = ',', const int& precision=0){
+        std::ofstream writeFile(t_writeFileName);
+        if (precision){
+            writeFile.precision(precision);
+        }
+        for (auto& row : t_data){
+            writeFile << row.first.first << t_seperate << row.first.second << t_seperate << row.second << "\n";
+        }
+    }
+
     template<typename T>
     void write(const std::string &t_writeFileName, const std::vector<T>&t_data, const int& precision=0){
         std::ofstream writeFile(t_writeFileName);
