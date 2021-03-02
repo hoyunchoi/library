@@ -73,5 +73,30 @@ def logFit(x, y, xStart=0.0, xEnd=0.0, offset=0.0):
     fitY = np.power(10.0, poly[1]-offset)*np.power(fitX, poly[0])
     return fitX, fitY, poly[0], residual
 
+def linLogFit(x, y, xStart=0.0, xEnd=0.0, offset=0.0):
+    fitX = np.zeros(2)
+    if xStart==0.0 and xEnd==0.0:
+        fitX[0] = x[0]
+        fitX[1] = x[-1]
+    else:
+        fitX[0] = xStart
+        fitX[1] = xEnd
+    poly, residual, _, _, _ = np.polyfit(x, np.log10(y), 1, full=True)
+    fitY = np.power(10.0, poly[0]*fitX + poly[1]-offset)
+    return fitX, fitY, poly[0], residual
+
+def logLinFit(x, y, xStart=0.0, xEnd=0.0, offset=0.0):
+    fitX = np.zeros(2)
+    if xStart==0.0 and xEnd==0.0:
+        fitX[0] = x[0]
+        fitX[1] = x[-1]
+    else:
+        fitX[0] = xStart
+        fitX[1] = xEnd
+    poly, residual, _, _, _ = np.polyfit(np.log10(x), y, 1, full=True)
+    fitY = poly[0] * np.log10(fitX) + poly[1]-offset
+    return fitX, fitY, poly[0], residual
+
+
 if __name__=="__main__":
     print("This is a module draw.py")
