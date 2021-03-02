@@ -486,11 +486,16 @@ std::vector<T> arange(const T& t_begin, const T& t_end, const T& t_delta){
     return result;
 }
 
+template<typename T>
+T accumulate(const std::vector<T>& t_vec){
+    return std::accumulate(t_vec.begin(), t_vec.end(), (T)0);
+}
+
 
 //! Map Calculation
 //* map += map
-template<typename T, typename TT, typename TTT>
-std::map<T,TT> operator+= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2){
+template<typename T, typename TT>
+std::map<T,TT> operator+= (std::map<T,TT>& t_map1, const std::map<T,TT>& t_map2){
     for (const auto& e : t_map2){
         t_map1[e.first] += e.second;
     }
@@ -498,8 +503,8 @@ std::map<T,TT> operator+= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2
 }
 
 //* map -= map
-template<typename T, typename TT, typename TTT>
-std::map<T,TT> operator-= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2){
+template<typename T, typename TT>
+std::map<T,TT> operator-= (std::map<T,TT>& t_map1, const std::map<T,TT>& t_map2){
     for (const auto& e : t_map2){
         t_map1[e.first] -= e.second;
     }
@@ -571,8 +576,8 @@ std::map<T, TT> operator*= (std::map<T,TT>& t_map, const TT& t_c){
 }
 
 //* map *= map
-template<typename T, typename TT, typename TTT>
-std::map<T,TT> operator*= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2){
+template<typename T, typename TT>
+std::map<T,TT> operator*= (std::map<T,TT>& t_map1, const std::map<T,TT>& t_map2){
     for (const auto& e : t_map2){
         t_map1[e.first] *= e.second;
     }
@@ -580,8 +585,8 @@ std::map<T,TT> operator*= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2
 }
 
 //* map /= map
-template<typename T, typename TT, typename TTT>
-std::map<T,TT> operator/= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2){
+template<typename T, typename TT>
+std::map<T,TT> operator/= (std::map<T,TT>& t_map1, const std::map<T,TT>& t_map2){
     for (const auto& e : t_map2){
         t_map1[e.first] /= e.second;
     }
@@ -589,15 +594,13 @@ std::map<T,TT> operator/= (std::map<T,TT>& t_map1, const std::map<T,TTT>& t_map2
 }
 
 //* map /= const
-template<typename T, typename TT, typename TTT>
-std::map<T,TT> operator/= (std::map<T,TT>& t_map, const TTT& t_c){
+template<typename T, typename TT>
+std::map<T,TT> operator/= (std::map<T,TT>& t_map, const TT& t_c){
     for (auto& e : t_map){
         e.second /= t_c;
     }
     return t_map;
 }
-
-
 
 //* plus 1 to the 'value' of t_map1['key'] for every 'key' inside t_map2
 template<typename T, typename TT>
