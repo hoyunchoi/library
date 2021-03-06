@@ -1,91 +1,91 @@
-import numpy as np
+import math
 
 
-def latexString(t_string):
-    return "$" + t_string + "$"
-
-
-def latexSci(t_value):
-    if (t_value == 0):
+def __sci__(value, digit):
+    if value == 0:
         return ""
-    exponent = int(np.floor(np.log10(t_value)))
-    residual = round(np.power(10.0, np.log10(t_value) - exponent), 10)
+    exponent = math.floor(math.log10(value))
+    residual = round(math.pow(10.0, math.log10(value) - exponent), 10)
     if (residual == 1):
-        return "$10^{" + str(exponent) + "}$"
+        return "10^{" + str(exponent) + "}"
+    elif (digit):
+        return "{:.{}f}".format(residual, digit) + "\\times 10^{" + str(exponent) + "}"
     else:
-        return "$" + str(residual) + "\\times 10^{" + str(exponent) + "}$"
+        return "{}\\times 10^".format(residual) + "{" + str(exponent) + "}"
 
 
-def latexFloat(t_value, digit=None):
+def __float__(value, digit):
     if (digit):
-        string = "{:.{}f}".format(t_value, digit)
+        return "{:.{}f}".format(value, digit)
     else:
-        string = str(t_value)
+        return str(value)
+
+
+def latex_string(string):
     return "$" + string + "$"
 
 
-def list_latexSci(list_value):
-    result = np.array([])
-    for t_value in list_value:
-        result = np.append(result, latexSci(t_value))
-    return result
-
-
-def list_latexFloat(list_value, digit=None):
-    result = np.array([])
-    for t_value in list_value:
-        result = np.append(result, latexFloat(t_value, digit))
-    return result
-
-
-def list_latexString(list_string):
-    result = np.array([])
-    for string in list_string:
-        result = np.append(result, latexString(string))
-    return result
-
-
-def latexBoldString(t_string):
-    return "$\\boldsymbol{" + t_string + "}$"
-
-
-def latexBoldSci(t_value):
-    exponent = int(np.floor(np.log10(t_value)))
-    residual = round(np.power(10.0, np.log10(t_value) - exponent), 10)
-    if (residual == 1):
-        return "$\\boldsymbol{10^{" + str(exponent) + "}}$"
-    else:
-        return "$\\boldsymbol{" + str(residual) + "\\times 10^{" + str(exponent) + "}}$"
-
-
-def latexBoldFloat(t_value, digit=None):
-    if (digit):
-        string = "{:.{}f}".format(t_value, digit)
-    else:
-        string = str(t_value)
+def latex_bold_string(string):
     return "$\\boldsymbol{" + string + "}$"
 
 
-def list_latexBoldSci(list_value):
-    result = np.array([])
-    for t_value in list_value:
-        result = np.append(result, latexBoldSci(t_value))
+def latex_sci(value, digit=None):
+    return latex_string(__sci__(value, digit))
+
+
+def latex_bold_sci(value, digit=None):
+    return latex_bold_string(__sci__(value, digit))
+
+
+def latex_float(value, digit=None):
+    return latex_string(__float__(value, digit))
+
+
+def latex_bold_float(value, digit=None):
+    return latex_bold_string(__float__(value, digit))
+
+
+def list_latex_string(string_list):
+    result = []
+    for string in string_list:
+        result.append(latex_string(string))
     return result
 
 
-def list_latexBoldFloat(list_value, digit=None):
-    result = np.array([])
-    for t_value in list_value:
-        result = np.append(result, latexBoldFloat(t_value, digit))
+def list_latex_bold_string(string_list):
+    result = []
+    for string in string_list:
+        result.append(latex_bold_string(string))
     return result
 
 
-def list_latexBoldString(list_string):
-    result = np.array([])
-    for string in list_string:
-        result = np.append(result, latexBoldString(string))
+def list_latex_sci(value_list, digit=None):
+    result = []
+    for value in value_list:
+        result.append(latex_sci(value, digit))
+    return result
+
+
+def list_latex_bold_sci(value_list, digit=None):
+    result = []
+    for value in value_list:
+        result.append(latex_bold_sci(value, digit))
+    return result
+
+
+def list_latex_float(value_list, digit=None):
+    result = []
+    for value in value_list:
+        result.append(latex_float(value, digit))
+    return result
+
+
+def list_latex_bold_float(value_list, digit=None):
+    result = []
+    for value in value_list:
+        result.append(latex_bold_float(value, digit))
     return result
 
 
 if __name__ == "__main__":
-    print("This is a module latexString.py")
+    print("This is a module latex_string.py")

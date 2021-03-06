@@ -50,9 +50,9 @@ new_rc_params = {
     'ytick.major.pad': 15,
 
     #* save
-    'savefig.dpi': 500,
-    'savefig.transparent': True,
-    # 'savefig.facecolor' : "#ffffff",
+    'savefig.dpi': 300,
+    # 'savefig.transparent': True,
+    'savefig.facecolor' : "#ffffff",
     'savefig.bbox': 'tight',
     'savefig.format': 'pdf'
 }

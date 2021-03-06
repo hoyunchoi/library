@@ -20,10 +20,6 @@ const std::tuple<std::vector<int>, std::vector<double>, std::vector<unsigned>> s
 //* Return tuple(maxBin, value)
 const std::tuple<std::vector<double>, std::vector<double>> setLinBin_(const double& t_minVal, const double& t_maxVal, const double& t_delta);
 
-//! average binning
-template <typename T>
-std::map<double, double> avgBin(const std::map<T, double>& t_raw, const std::vector<double>& t_maxBin, const std::vector<double>& t_value);
-
 //! Log Binning
 //* Log Binning distribution
 std::map<double, double> distLogBin(const std::vector<double>& t_raw, const double& t_minExponent = 0.0, const double& t_maxExponent = 10.0, const double& t_deltaExponent = 0.1);
@@ -75,27 +71,6 @@ const std::tuple<std::vector<double>, std::vector<double>> dataProcess::setLinBi
     maxBin.erase(maxBin.begin());
     return std::make_tuple(maxBin, value);
 }  //* End of function dataProcess::setLinBin_
-
-
-template <typename T>
-std::map<double, double> dataProcess::avgBin(const std::map<T, double>& t_raw, const std::vector<double>& t_maxBin, const std::vector<double>& t_value){
-    std::map<double, double> binned;
-    std::map<double, unsigned> sampled;
-    for (const auto& raw : t_raw) {
-        for (unsigned j = 0; j < t_value.size(); ++j) {
-            if (raw.first < t_maxBin[j]) {
-                binned[t_value[j]] += raw.second;
-                ++sampled[t_value[j]];
-                break;
-            }
-        }
-    }
-    for (const auto& e : sampled) {
-        binned.at(e.first) /= e.second;
-    }
-    return binned;
-}
-
 
 std::map<double, double> dataProcess::distLogBin(const std::vector<double>& t_raw, const double& t_minExponent, const double& t_maxExponent, const double& t_deltaExponent) {
     using namespace linearAlgebra;
@@ -156,7 +131,23 @@ std::map<double, double> dataProcess::avgLogBin(const std::vector<double>& t_raw
 template <typename T>
 std::map<double, double> dataProcess::avgLogBin(const std::map<T, double>& t_raw, const double& t_minExponent, const double& t_maxExponent, const double& t_deltaExponent) {
     const auto [maxBin, value, binSize] = setLogBin_(t_minExponent, t_maxExponent, t_deltaExponent);
-    return avgBin(t_raw, maxBin, value);
+    (void)binSize;
+    std::map<double, double> binned;
+    std::map<double, unsigned> sampled;
+    for (const auto& raw : t_raw) {
+        for (unsigned j = 0; j < value.size(); ++j) {
+            if ((int)raw.first < maxBin[j]) {
+                binned[value[j]] += raw.second;
+                ++sampled[value[j]];
+                break;
+            }
+        }
+    }
+    for (const auto& e : sampled) {
+        binned.at(e.first) /= e.second;
+    }
+    return binned;
+
 }  //* End of function dataProcess::logBin(map)
 
 std::map<std::pair<double, double>, double> dataProcess::distLogLogBin(const std::map<std::pair<int, int>, double>& t_raw, const double& t_minExponent, const double& t_maxExponent, const double& t_deltaExponent) {
@@ -223,5 +214,19 @@ std::map<double, double> dataProcess::distLinBin(const std::map<T, double>& t_ra
 template <typename T>
 std::map<double, double> dataProcess::avgLinBin(const std::map<T, double>& t_raw, const double& t_minVal, const double& t_maxVal, const double& t_delta) {
     const auto [maxBin, value] = setLinBin_(t_minVal, t_maxVal, t_delta);
-    return avgBin(t_raw, maxBin, value);
+    std::map<double, double> binned;
+    std::map<double, unsigned> sampled;
+    for (const auto& raw : t_raw) {
+        for (unsigned j = 0; j < value.size(); ++j) {
+            if (raw.first < maxBin[j]) {
+                binned[value[j]] += raw.second;
+                ++sampled[value[j]];
+                break;
+            }
+        }
+    }
+    for (const auto& e : sampled) {
+        binned.at(e.first) /= e.second;
+    }
+    return binned;
 }  //* End of function dataProcess::avgLinBin

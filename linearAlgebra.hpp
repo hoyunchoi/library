@@ -486,6 +486,13 @@ T accumulate(const std::vector<T>& t_vec) {
     return std::accumulate(t_vec.begin(), t_vec.end(), (T)0);
 }
 
+//* Pop back of vector
+template <typename T>
+void popBack(std::vector<T>& t_vec){
+    t_vec.pop_back();
+    return;
+}
+
 //! Map Calculation
 //* map += map
 template <typename T, typename TT>
@@ -611,6 +618,13 @@ TT accumulate(const std::map<T, TT>& t_map) {
         result += e.second;
     }
     return result;
+}
+
+//* pop back of map
+template <typename T, typename TT>
+void popBack(std::map<T, TT>& t_map){
+    t_map.erase(t_map.end()->first);
+    return;
 }
 
 //* print
