@@ -52,7 +52,7 @@ new_rc_params = {
     #* save
     'savefig.dpi': 300,
     # 'savefig.transparent': True,
-    'savefig.facecolor' : "#ffffff",
+    'savefig.facecolor': "#ffffff",
     'savefig.bbox': 'tight',
     'savefig.format': 'pdf'
 }
@@ -63,44 +63,59 @@ mpl.rcParams.update(new_rc_params)
 #* return xFit, yFit, gradient, residual
 
 
-def logFit(x, y, xStart=0.0, xEnd=0.0, offset=0.0):
-    fitX = np.zeros(2)
-    if xStart == 0.0 and xEnd == 0.0:
-        fitX[0] = x[0]
-        fitX[1] = x[-1]
-    else:
-        fitX[0] = xStart
-        fitX[1] = xEnd
-    poly, residual, _, _, _ = np.polyfit(
-        np.log10(x), np.log10(y), 1, full=True)
+def logFit(x, y, start=None, end=None, offset=0.0):
+    if not start:
+        start = x[0]
+    if not end:
+        end = x[-1]
+    poly, residual, _, _, _ = np.polyfit(np.log10(x), np.log10(y), 1, full=True)
+    fitX = np.array([start, end])
     fitY = np.power(10.0, poly[1] - offset) * np.power(fitX, poly[0])
     return fitX, fitY, poly[0], residual
 
 
-def linLogFit(x, y, xStart=0.0, xEnd=0.0, offset=0.0):
-    fitX = np.zeros(2)
-    if xStart == 0.0 and xEnd == 0.0:
-        fitX[0] = x[0]
-        fitX[1] = x[-1]
-    else:
-        fitX[0] = xStart
-        fitX[1] = xEnd
+def linLogFit(x, y, start=None, end=None, offset=0.0):
+    if not start:
+        start = x[0]
+    if not end:
+        end = x[-1]
     poly, residual, _, _, _ = np.polyfit(x, np.log10(y), 1, full=True)
+    fitX = np.array([start, end])
     fitY = np.power(10.0, poly[0] * fitX + poly[1] - offset)
     return fitX, fitY, poly[0], residual
 
 
-def logLinFit(x, y, xStart=0.0, xEnd=0.0, offset=0.0):
-    fitX = np.zeros(2)
-    if xStart == 0.0 and xEnd == 0.0:
-        fitX[0] = x[0]
-        fitX[1] = x[-1]
-    else:
-        fitX[0] = xStart
-        fitX[1] = xEnd
+def logLinFit(x, y, start=None, end=None, offset=0.0):
+    if not start:
+        start = x[0]
+    if not end:
+        end = x[-1]
     poly, residual, _, _, _ = np.polyfit(np.log10(x), y, 1, full=True)
+    fitX = np.array([start, end])
     fitY = poly[0] * np.log10(fitX) + poly[1] - offset
     return fitX, fitY, poly[0], residual
+
+
+def loglogLine(x0, y0, slope, x1, x2=None, offset=0.0):
+    assert y0 != offset, "At log-log-line, check the y0 and offset"
+    firstY = np.power(x1 / x0, slope) * (y0 - offset)
+    if x2:
+        secondY = np.power(x2 / x0, slope) * (y0 - offset)
+    else:
+        secondY = y0 - offset
+    return firstY, secondY
+
+
+def loglog_trans_y(x1, y1, x2, y2, offset=0.0):
+    newX = x1, x2
+    newY = y1 * np.power(10.0, -offset), y2 * np.power(10.0, -offset)
+    return newX, newY
+
+
+def loglog_trans_x(x1, y1, x2, y2, offset=0.0):
+    newX = x1 * np.power(10.0, -offset), x2 * np.power(10.0, -offset)
+    newY = y1, y2
+    return newX, newY
 
 
 if __name__ == "__main__":
