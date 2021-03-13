@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 //* Write and Read CSV file
 namespace CSV {
@@ -58,10 +59,10 @@ void write(const std::string t_writeFileName, const std::vector<std::vector<T>>&
 }
 
 //* Read
-void read(const std::string& readFileName, std::vector<double>& t_data) {
-    std::ifstream readFile(readFileName);
+void read(const std::string& t_readFile, std::vector<double>& t_data) {
+    std::ifstream readFile(t_readFile);
     if (readFile.fail()) {
-        std::cout << "No such file : " << readFileName << std::endl;
+        std::cout << "No such file : " << t_readFile << std::endl;
         exit(1);
     }
     t_data.clear();
@@ -70,10 +71,10 @@ void read(const std::string& readFileName, std::vector<double>& t_data) {
         t_data.emplace_back(std::stod(row));
     }
 }
-void read(const std::string& readFileName, std::vector<int>& t_data) {
-    std::ifstream readFile(readFileName);
+void read(const std::string& t_readFile, std::vector<int>& t_data) {
+    std::ifstream readFile(t_readFile);
     if (readFile.fail()) {
-        std::cout << "No such file : " << readFileName << std::endl;
+        std::cout << "No such file : " << t_readFile << std::endl;
         exit(1);
     }
     t_data.clear();
@@ -82,10 +83,10 @@ void read(const std::string& readFileName, std::vector<int>& t_data) {
         t_data.emplace_back(std::stoi(row));
     }
 }
-void read(const std::string& readFileName, std::vector<unsigned>& t_data) {
-    std::ifstream readFile(readFileName);
+void read(const std::string& t_readFile, std::vector<unsigned>& t_data) {
+    std::ifstream readFile(t_readFile);
     if (readFile.fail()) {
-        std::cout << "No such file : " << readFileName << std::endl;
+        std::cout << "No such file : " << t_readFile << std::endl;
         exit(1);
     }
     t_data.clear();
@@ -95,10 +96,10 @@ void read(const std::string& readFileName, std::vector<unsigned>& t_data) {
     }
 }
 
-void read(const std::string& readFileName, std::vector<std::vector<double>>& t_data, const char t_seperate = ',') {
-    std::ifstream readFile(readFileName);
+void read(const std::string& t_readFile, std::vector<std::vector<double>>& t_data, const char t_seperate = ',') {
+    std::ifstream readFile(t_readFile);
     if (readFile.fail()) {
-        std::cout << "No such file : " << readFileName << std::endl;
+        std::cout << "No such file : " << t_readFile << std::endl;
         exit(1);
     }
     t_data.clear();
@@ -114,10 +115,10 @@ void read(const std::string& readFileName, std::vector<std::vector<double>>& t_d
     }
 }
 
-void read(const std::string& readFileName, std::vector<std::vector<int>>& t_data, const char t_seperate = ',') {
-    std::ifstream readFile(readFileName);
+void read(const std::string& t_readFile, std::vector<std::vector<int>>& t_data, const char t_seperate = ',') {
+    std::ifstream readFile(t_readFile);
     if (readFile.fail()) {
-        std::cout << "No such file : " << readFileName << std::endl;
+        std::cout << "No such file : " << t_readFile << std::endl;
         exit(1);
     }
     t_data.clear();
@@ -133,10 +134,10 @@ void read(const std::string& readFileName, std::vector<std::vector<int>>& t_data
     }
 }
 
-void read(const std::string& readFileName, std::vector<std::vector<unsigned>>& t_data, const char t_seperate = ',') {
-    std::ifstream readFile(readFileName);
+void read(const std::string& t_readFile, std::vector<std::vector<unsigned>>& t_data, const char t_seperate = ',') {
+    std::ifstream readFile(t_readFile);
     if (readFile.fail()) {
-        std::cout << "No such file : " << readFileName << std::endl;
+        std::cout << "No such file : " << t_readFile << std::endl;
         exit(1);
     }
     t_data.clear();
@@ -152,10 +153,10 @@ void read(const std::string& readFileName, std::vector<std::vector<unsigned>>& t
     }
 }
 
-void read(const std::string& readFileName, std::map<double, double>& t_data, const char t_seperate = ',') {
-    std::ifstream readFile(readFileName);
+void read(const std::string& t_readFile, std::map<double, double>& t_data, const char t_seperate = ',') {
+    std::ifstream readFile(t_readFile);
     if (readFile.fail()) {
-        std::cout << "No such file : " << readFileName << std::endl;
+        std::cout << "No such file : " << t_readFile << std::endl;
         exit(1);
     }
     t_data.clear();
@@ -173,10 +174,10 @@ void read(const std::string& readFileName, std::map<double, double>& t_data, con
     }
 }
 
-void read(const std::string& readFileName, std::map<int, double>& t_data, const char t_seperate = ',') {
-    std::ifstream readFile(readFileName);
+void read(const std::string& t_readFile, std::map<int, double>& t_data, const char t_seperate = ',') {
+    std::ifstream readFile(t_readFile);
     if (readFile.fail()) {
-        std::cout << "No such file : " << readFileName << std::endl;
+        std::cout << "No such file : " << t_readFile << std::endl;
         exit(1);
     }
     t_data.clear();
@@ -195,10 +196,10 @@ void read(const std::string& readFileName, std::map<int, double>& t_data, const 
     }
 }
 
-void read(const std::string& readFileName, std::map<std::pair<int, int>, double>& t_data, const char t_seperate = ',') {
-    std::ifstream readFile(readFileName);
+void read(const std::string& t_readFile, std::map<std::pair<int, int>, double>& t_data, const char t_seperate = ',') {
+    std::ifstream readFile(t_readFile);
     if (readFile.fail()) {
-        std::cout << "No such file: " << readFileName << std::endl;
+        std::cout << "No such file: " << t_readFile << std::endl;
         exit(1);
     }
     t_data.clear();
@@ -217,6 +218,22 @@ void read(const std::string& readFileName, std::map<std::pair<int, int>, double>
             ++i;
         }
     }
+    return;
+}
+
+template<typename T>
+T read(const std::string& t_readFile, const T& t_format, const char t_seperate = ','){
+    T data;
+    read(t_readFile, data, t_seperate);
+    return data;
+}
+
+//* Define new directory
+void generateDirectory(const std::string& t_directory){
+    if (!std::filesystem::exists(t_directory)) {
+        std::filesystem::create_directories(t_directory);
+    }
+    return;
 }
 
 //* Delete File
