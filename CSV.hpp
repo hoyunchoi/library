@@ -221,13 +221,6 @@ void read(const std::string& t_readFile, std::map<std::pair<int, int>, double>& 
     return;
 }
 
-template<typename T>
-T read(const std::string& t_readFile, const T& t_format, const char t_seperate = ','){
-    T data;
-    read(t_readFile, data, t_seperate);
-    return data;
-}
-
 //* Define new directory
 void generateDirectory(const std::string& t_directory){
     if (!std::filesystem::exists(t_directory)) {
