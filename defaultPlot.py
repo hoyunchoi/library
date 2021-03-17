@@ -7,12 +7,12 @@ new_rc_params = {
     # Default parameters for plot
     #* text
     'text.usetex': True,
-    # 'text.latex.preamble': [r"""\usepackage{amsmath}"""],
     'font.size': 50,
     "text.latex.preamble": r"\usepackage{amsmath}",
 
     #* figure
     'figure.figsize': (10, 10),
+    'figure.facecolor': 'white',
     'axes.linewidth': 3,
     'image.aspect': 'equal',
 

@@ -28,7 +28,7 @@ def avgLogBin(raw_x, raw_y, min_exponent=0.0, max_exponent=10.0, delta_exponent=
 
 
 #* Linear binning
-def distLinBin(raw_x, raw_y, min_val=0.0, max_val=1.0, delta=5e-4):
+def distLinBin(raw_x, raw_y, min_val=0.0, max_val=1.0, delta=1e-4, keepZero=False):
     assert len(raw_x) == len(raw_y), "At avg lin binning, need same length of array"
     assert type(raw_x) is np.ndarray, "At avg lin binning, input need to be numpy array"
     assert type(raw_y) is np.ndarray, "At avg lin binning, input need to be numpy array"
@@ -36,10 +36,13 @@ def distLinBin(raw_x, raw_y, min_val=0.0, max_val=1.0, delta=5e-4):
     bin = np.arange(min_val, max_val+delta, delta)
     binned_y, binned_x = np.histogram(raw_x, bins=bin, weights=raw_y, density=True)
     binned_x = (binned_x[1:] + binned_x[:-1]) / 2.0
-    return binned_x[binned_y != 0], binned_y[binned_y != 0]
+    if keepZero:
+        return binned_x, binned_y
+    else:
+        return binned_x[binned_y != 0], binned_y[binned_y != 0]
 
 
-def avgLinBin(raw_x, raw_y, min_val=0.0, max_val=1.0, delta=1e-4):
+def avgLinBin(raw_x, raw_y, min_val=0.0, max_val=1.0, delta=1e-4, keepZero=False):
     assert len(raw_x) == len(raw_y), "At avg lin binning, need same length of array"
     assert type(raw_x) is np.ndarray, "At avg lin binning, input need to be numpy array"
     assert type(raw_y) is np.ndarray, "At avg lin binning, input need to be numpy array"
@@ -48,7 +51,15 @@ def avgLinBin(raw_x, raw_y, min_val=0.0, max_val=1.0, delta=1e-4):
     binned_y, binned_x = np.histogram(raw_x, bins=bin, weights=raw_y)
     sampled,_ = np.histogram(raw_x, bins=bin)
     binned_x = (binned_x[1:] + binned_x[:-1]) / 2.0
-    return binned_x[sampled!=0], binned_y[sampled!=0]/sampled[sampled!=0]
+    if keepZero:
+        for index,value in enumerate(sampled):
+            if value:
+                binned_y[index] /= value
+            else:
+                binned_y[index] = 0
+        return binned_x, binned_y
+    else:
+        return binned_x[sampled!=0], binned_y[sampled!=0]/sampled[sampled!=0]
 
 
 if __name__ == "__main__":

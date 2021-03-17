@@ -14,30 +14,45 @@
 namespace CSV {
 //* Write
 template <typename T, typename TT>
-void write(const std::string& t_writeFileName, const std::map<T, TT>& t_data, const char t_seperate = ',', const int& precision = 0) {
-    std::ofstream writeFile(t_writeFileName);
+void write(const std::string& t_writeFile, const std::map<T, TT>& t_data, const char t_seperate = ',', const int& precision = 0) {
+    std::ofstream writeFile(t_writeFile);
     if (precision) {
         writeFile.precision(precision);
     }
-    for (auto& row : t_data) {
+    for (const auto& row : t_data) {
         writeFile << row.first << t_seperate << row.second << "\n";
     }
 }
 
 template <typename T, typename TT, typename TTT>
-void write(const std::string& t_writeFileName, const std::map<std::pair<T, TT>, TTT>& t_data, const char t_seperate = ',', const int& precision = 0) {
-    std::ofstream writeFile(t_writeFileName);
+void write(const std::string& t_writeFile, const std::map<std::pair<T, TT>, TTT>& t_data, const char t_seperate = ',', const int& precision = 0) {
+    std::ofstream writeFile(t_writeFile);
     if (precision) {
         writeFile.precision(precision);
     }
-    for (auto& row : t_data) {
+    for (const auto& row : t_data) {
         writeFile << row.first.first << t_seperate << row.first.second << t_seperate << row.second << "\n";
     }
 }
 
+template <typename T, typename TT>
+void write(const std::string& t_writeFile, const std::map<T, std::vector<TT>>& t_data, const char t_seperate = ',', const int& precision = 0) {
+    std::ofstream writeFile(t_writeFile);
+    if (precision){
+        writeFile.precision(precision);
+    }
+    for (const auto& row : t_data){
+        writeFile << row.first << t_seperate;
+        for (unsigned i=0; i<row.second.size()-1; ++i){
+            writeFile << row.second[i] << t_seperate;
+        }
+        writeFile << row.second.back() << "\n";
+    }
+}
+
 template <typename T>
-void write(const std::string& t_writeFileName, const std::vector<T>& t_data, const int& precision = 0) {
-    std::ofstream writeFile(t_writeFileName);
+void write(const std::string& t_writeFile, const std::vector<T>& t_data, const int& precision = 0) {
+    std::ofstream writeFile(t_writeFile);
     if (precision) {
         writeFile.precision(precision);
     }
@@ -45,8 +60,8 @@ void write(const std::string& t_writeFileName, const std::vector<T>& t_data, con
 }
 
 template <typename T>
-void write(const std::string t_writeFileName, const std::vector<std::vector<T>>& t_data, const char t_seperate = ',', const int& precision = 0) {
-    std::ofstream writeFile(t_writeFileName);
+void write(const std::string t_writeFile, const std::vector<std::vector<T>>& t_data, const char t_seperate = ',', const int& precision = 0) {
+    std::ofstream writeFile(t_writeFile);
     if (precision) {
         writeFile.precision(precision);
     }
@@ -220,6 +235,34 @@ void read(const std::string& t_readFile, std::map<std::pair<int, int>, double>& 
     }
     return;
 }
+
+void read(const std::string& t_readFile, std::map<int, std::vector<double>>& t_data, const char t_seperate = ','){
+    std::ifstream readFile(t_readFile);
+    if (readFile.fail()){
+        std::cout << "No such file: " << t_readFile << std::endl;
+        exit(1);
+    }
+    t_data.clear();
+    std::string row, key, value;
+    std::vector<double> valueVec;
+    while (getline(readFile, row)){
+        std::stringstream rowstream(row);
+        int i=0;
+        while (getline(rowstream, value, t_seperate)){
+            if (i==0){
+                key = value;
+            }
+            else {
+                valueVec.emplace_back(std::stod(value));
+            }
+            ++i;
+        }
+        t_data[std::stoi(key)] = valueVec;
+        valueVec.clear();
+    }
+    return;
+}
+
 
 //* Define new directory
 void generateDirectory(const std::string& t_directory){

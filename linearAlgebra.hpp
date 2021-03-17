@@ -37,7 +37,10 @@ std::vector<T> operator+(const std::vector<T>& t_vec1, const std::vector<T>& t_v
 }
 template <typename T>
 std::vector<T>& operator+=(std::vector<T>& t_vec1, const std::vector<T>& t_vec2) {
-    if (t_vec1.size() != t_vec2.size()) {
+    if (t_vec1.empty()){
+        t_vec1.resize(t_vec2.size());
+    }
+    else if (t_vec1.size() != t_vec2.size()) {
         std::cout << "In plus operation, two vectors have different length" << std::endl;
         exit(1);
     }
