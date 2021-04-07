@@ -13,13 +13,13 @@
 
 struct Node_Epidemic : public Node {
     //* Member variables
-    std::string m_state;
-    double m_transitionRate{0.0};
+    std::string state;
+    double transitionRate{0.0};
 
     //* Generator
     Node_Epidemic() {}
     Node_Epidemic(const unsigned& t_index) : Node(t_index) {}
-    Node_Epidemic(const unsigned& t_index, const std::string& t_state) : Node(t_index), m_state(t_state) {}
+    Node_Epidemic(const unsigned& t_index, const std::string& t_state) : Node(t_index), state(t_state) {}
 };
 
 /*
@@ -187,27 +187,27 @@ int numR;
 
 //* Update transition rate of single node
 void updateTransitionRate(const unsigned& t_index) {
-    const int intState = stateToInt[nodes[t_index].m_state];
+    const int intState = stateToInt[nodes[t_index].state];
     switch (intState) {
         //* S process
         case 0: {
             unsigned infectiousNeighbor = 0;
             for (const unsigned& neighbor : nodes[t_index].m_neighbors) {
-                if (nodes[neighbor].m_state == "I") {
+                if (nodes[neighbor].state == "I") {
                     ++infectiousNeighbor;
                 }
             }
-            nodes[t_index].m_transitionRate = SI_II * infectiousNeighbor;
+            nodes[t_index].transitionRate = SI_II * infectiousNeighbor;
             break;
         }
         //* I process
         case 1: {
-            nodes[t_index].m_transitionRate = I_R;
+            nodes[t_index].transitionRate = I_R;
             break;
         }
         //* R Process
         case 2: {
-            nodes[t_index].m_transitionRate = 0.0;
+            nodes[t_index].transitionRate = 0.0;
             break;
         }
     }
@@ -231,7 +231,7 @@ void initialize(const int& t_randomEngineSeed, const pcg32& t_randomEngine) {
     numR = 0;
     reactingIndex.clear();
     for (unsigned index = 0; index < seedSize; ++index) {
-        nodes[index].m_state = "I";
+        nodes[index].state = "I";
         reactingIndex.emplace(index);
         for (const unsigned& neighbor : nodes[index].m_neighbors) {
             reactingIndex.emplace(neighbor);
@@ -247,13 +247,13 @@ void syncUpdate() {
     //* Do reactions according to each transition rate and add I into reacting
     std::set<unsigned> newReactingIndex;
     for (const unsigned& index : reactingIndex) {
-        const int intState = stateToInt[nodes[index].m_state];
-        const double transitionProb = 1.0 - std::exp(-1.0 * nodes[index].m_transitionRate * deltaT);
+        const int intState = stateToInt[nodes[index].state];
+        const double transitionProb = 1.0 - std::exp(-1.0 * nodes[index].transitionRate * deltaT);
         switch (intState) {
             //* S process
             case 0: {
                 if (probabilityDistribution(randomEngine) <= transitionProb) {
-                    nodes[index].m_state = "I";
+                    nodes[index].state = "I";
                     --numS;
                     ++numI;
                     newReactingIndex.emplace(index);
@@ -263,7 +263,7 @@ void syncUpdate() {
             //* I process
             case 1: {
                 if (probabilityDistribution(randomEngine) <= transitionProb) {
-                    nodes[index].m_state = "R";
+                    nodes[index].state = "R";
                     --numI;
                     ++numR;
                 } else {
@@ -278,7 +278,7 @@ void syncUpdate() {
     reactingIndex = newReactingIndex;
     for (const unsigned& index : newReactingIndex) {
         for (const unsigned& neighbor : nodes[index].m_neighbors) {
-            if (nodes[neighbor].m_state == "S") {
+            if (nodes[neighbor].state == "S") {
                 reactingIndex.emplace(neighbor);
             }
         }
@@ -294,7 +294,7 @@ void asyncUpdate() {
     //* Calculate total tarnsition rate and delta time
     double totalTransitionRate = 0.0;
     for (const unsigned& index : reactingIndex) {
-        totalTransitionRate += nodes[index].m_transitionRate;
+        totalTransitionRate += nodes[index].transitionRate;
     }
     deltaT = std::log(1.0 / probabilityDistribution(randomEngine)) / totalTransitionRate;
     totalTransitionRate *= probabilityDistribution(randomEngine);
@@ -306,23 +306,23 @@ void asyncUpdate() {
     unsigned target = 0;
     for (unsigned i = 0; i < shuffledReactingIndex.size(); ++i) {
         target = shuffledReactingIndex[i];
-        cumulativeTransitionRate += nodes[target].m_transitionRate;
+        cumulativeTransitionRate += nodes[target].transitionRate;
         if (cumulativeTransitionRate > totalTransitionRate) {
             break;
         }
     }
 
     //* React target node and update transition rate
-    const int intState = stateToInt[nodes[target].m_state];
+    const int intState = stateToInt[nodes[target].state];
     switch (intState) {
         //* S process
         case 0: {
-            nodes[target].m_state = "I";
+            nodes[target].state = "I";
             --numS;
             ++numI;
             updateTransitionRate(target);
             for (const unsigned& neighbor : nodes[target].m_neighbors) {
-                if (nodes[neighbor].m_state == "S") {
+                if (nodes[neighbor].state == "S") {
                     reactingIndex.emplace(neighbor);
                     updateTransitionRate(neighbor);
                 }
@@ -331,14 +331,14 @@ void asyncUpdate() {
         }
         //* I process
         case 1: {
-            nodes[target].m_state = "R";
+            nodes[target].state = "R";
             --numI;
             ++numR;
             reactingIndex.erase(target);
             for (const unsigned& neighbor : nodes[target].m_neighbors) {
-                if (nodes[neighbor].m_state == "S") {
-                    nodes[neighbor].m_transitionRate -= SI_II;
-                    if (!nodes[neighbor].m_transitionRate) {
+                if (nodes[neighbor].state == "S") {
+                    nodes[neighbor].transitionRate -= SI_II;
+                    if (!nodes[neighbor].transitionRate) {
                         reactingIndex.erase(neighbor);
                     }
                 }
@@ -570,38 +570,38 @@ int numS, numW, numI, numR;
 
 //* Update transition rate of single node
 void updateTransitionRate(const unsigned& t_index) {
-    const int intState = stateToInt[nodes[t_index].m_state];
+    const int intState = stateToInt[nodes[t_index].state];
     switch (intState) {
         //* S process
         case 0: {
             unsigned infectiousNeighbor = 0;
             for (const unsigned& neighbor : nodes[t_index].m_neighbors) {
-                if (nodes[neighbor].m_state == "I") {
+                if (nodes[neighbor].state == "I") {
                     ++infectiousNeighbor;
                 }
             }
-            nodes[t_index].m_transitionRate = SI_WI * infectiousNeighbor;
+            nodes[t_index].transitionRate = SI_WI * infectiousNeighbor;
             break;
         }
         //* W process
         case 1: {
             unsigned infectiousNeighbor = 0;
             for (const unsigned& neighbor : nodes[t_index].m_neighbors) {
-                if (nodes[neighbor].m_state == "I") {
+                if (nodes[neighbor].state == "I") {
                     ++infectiousNeighbor;
                 }
             }
-            nodes[t_index].m_transitionRate = WI_II * infectiousNeighbor;
+            nodes[t_index].transitionRate = WI_II * infectiousNeighbor;
             break;
         }
         //* I process
         case 2: {
-            nodes[t_index].m_transitionRate = I_R;
+            nodes[t_index].transitionRate = I_R;
             break;
         }
         //* R process
         case 3: {
-            nodes[t_index].m_transitionRate = 0.0;
+            nodes[t_index].transitionRate = 0.0;
             break;
         }
     }
@@ -625,7 +625,7 @@ void initialize(const int& t_randomEngineSeed, const pcg32& t_randomEngine) {
     numR = 0;
     reactingIndex.clear();
     for (unsigned index = 0; index < seedSize; ++index) {
-        nodes[index].m_state = "I";
+        nodes[index].state = "I";
         reactingIndex.emplace(index);
         for (const unsigned& neighbor : nodes[index].m_neighbors) {
             reactingIndex.emplace(neighbor);
@@ -641,13 +641,13 @@ void syncUpdate() {
     //* Do reactions according to each transition rate and add I into reacting nodes
     std::set<unsigned> newReactingIndex;
     for (const unsigned& index : reactingIndex) {
-        const int intState = stateToInt[nodes[index].m_state];
-        const double transitionProb = 1.0 - std::exp(-1.0 * nodes[index].m_transitionRate * deltaT);
+        const int intState = stateToInt[nodes[index].state];
+        const double transitionProb = 1.0 - std::exp(-1.0 * nodes[index].transitionRate * deltaT);
         switch (intState) {
             //* S process
             case 0: {
                 if (probabilityDistribution(randomEngine) <= transitionProb) {
-                    nodes[index].m_state = "W";
+                    nodes[index].state = "W";
                     --numS;
                     ++numW;
                 }
@@ -656,7 +656,7 @@ void syncUpdate() {
             //* W process
             case 1: {
                 if (probabilityDistribution(randomEngine) <= transitionProb) {
-                    nodes[index].m_state = "I";
+                    nodes[index].state = "I";
                     --numW;
                     ++numI;
                     newReactingIndex.emplace(index);
@@ -666,7 +666,7 @@ void syncUpdate() {
             //* I process
             case 2: {
                 if (probabilityDistribution(randomEngine) <= transitionProb) {
-                    nodes[index].m_state = "R";
+                    nodes[index].state = "R";
                     --numI;
                     ++numR;
                 } else {
@@ -681,7 +681,7 @@ void syncUpdate() {
     reactingIndex = newReactingIndex;
     for (const unsigned& index : newReactingIndex) {
         for (const unsigned& neighbor : nodes[index].m_neighbors) {
-            if (nodes[neighbor].m_state == "S" || nodes[neighbor].m_state == "W") {
+            if (nodes[neighbor].state == "S" || nodes[neighbor].state == "W") {
                 reactingIndex.emplace(neighbor);
             }
         }
@@ -698,7 +698,7 @@ void asyncUpdate() {
     //* Calculate total transition rate and Delta time
     double totalTransitionRate = 0.0;
     for (const unsigned& index : reactingIndex) {
-        totalTransitionRate += nodes[index].m_transitionRate;
+        totalTransitionRate += nodes[index].transitionRate;
     }
     deltaT = std::log(1.0 / probabilityDistribution(randomEngine)) / totalTransitionRate;
     totalTransitionRate *= probabilityDistribution(randomEngine);
@@ -710,35 +710,35 @@ void asyncUpdate() {
     unsigned target;
     for (unsigned i = 0; i < shuffledReactingIndex.size(); ++i) {
         target = shuffledReactingIndex[i];
-        cumulativeTransitionRate += nodes[target].m_transitionRate;
+        cumulativeTransitionRate += nodes[target].transitionRate;
         if (cumulativeTransitionRate > totalTransitionRate) {
             break;
         }
     }
 
     //* React target node and update transition rate
-    const int intState = stateToInt[nodes[target].m_state];
+    const int intState = stateToInt[nodes[target].state];
     switch (intState) {
         //* S process
         case 0: {
-            nodes[target].m_state = "W";
+            nodes[target].state = "W";
             --numS;
             ++numW;
-            nodes[target].m_transitionRate *= WI_II / SI_WI;
+            nodes[target].transitionRate *= WI_II / SI_WI;
             break;
         }
         //* W process
         case 1: {
-            nodes[target].m_state = "I";
+            nodes[target].state = "I";
             --numW;
             ++numI;
-            nodes[target].m_transitionRate = I_R;
+            nodes[target].transitionRate = I_R;
             for (const unsigned& neighbor : nodes[target].m_neighbors) {
-                if (nodes[neighbor].m_state == "S") {
-                    nodes[neighbor].m_transitionRate += SI_WI;
+                if (nodes[neighbor].state == "S") {
+                    nodes[neighbor].transitionRate += SI_WI;
                     reactingIndex.emplace(neighbor);
-                } else if (nodes[neighbor].m_state == "W") {
-                    nodes[neighbor].m_transitionRate += WI_II;
+                } else if (nodes[neighbor].state == "W") {
+                    nodes[neighbor].transitionRate += WI_II;
                     reactingIndex.emplace(neighbor);
                 }
             }
@@ -746,20 +746,20 @@ void asyncUpdate() {
         }
         //* I process
         case 2: {
-            nodes[target].m_state = "R";
+            nodes[target].state = "R";
             --numI;
             ++numR;
-            nodes[target].m_transitionRate = 0.0;
+            nodes[target].transitionRate = 0.0;
             reactingIndex.erase(target);
             for (const unsigned& neighbor : nodes[target].m_neighbors) {
-                if (nodes[neighbor].m_state == "S") {
-                    nodes[neighbor].m_transitionRate -= SI_WI;
-                    if (!nodes[neighbor].m_transitionRate) {
+                if (nodes[neighbor].state == "S") {
+                    nodes[neighbor].transitionRate -= SI_WI;
+                    if (!nodes[neighbor].transitionRate) {
                         reactingIndex.erase(neighbor);
                     }
-                } else if (nodes[neighbor].m_state == "W") {
-                    nodes[neighbor].m_transitionRate -= WI_II;
-                    if (!nodes[neighbor].m_transitionRate) {
+                } else if (nodes[neighbor].state == "W") {
+                    nodes[neighbor].transitionRate -= WI_II;
+                    if (!nodes[neighbor].transitionRate) {
                         reactingIndex.erase(neighbor);
                     }
                 }
@@ -991,32 +991,32 @@ int numS, numE, numI, numR;
 
 //* Update transition rate of single node
 void updateTransitionRate(const unsigned& t_index) {
-    const int intState = stateToInt[nodes[t_index].m_state];
+    const int intState = stateToInt[nodes[t_index].state];
     switch (intState) {
         //* S process
         case 0: {
             unsigned infectiousNeighbor = 0;
             for (const unsigned& neighbor : nodes[t_index].m_neighbors) {
-                if (nodes[neighbor].m_state == "I") {
+                if (nodes[neighbor].state == "I") {
                     ++infectiousNeighbor;
                 }
             }
-            nodes[t_index].m_transitionRate = SI_EI * infectiousNeighbor;
+            nodes[t_index].transitionRate = SI_EI * infectiousNeighbor;
             break;
         }
         //* E process
         case 1: {
-            nodes[t_index].m_transitionRate = E_I;
+            nodes[t_index].transitionRate = E_I;
             break;
         }
         //* I process
         case 2: {
-            nodes[t_index].m_transitionRate = I_R;
+            nodes[t_index].transitionRate = I_R;
             break;
         }
         //* R process
         case 3: {
-            nodes[t_index].m_transitionRate = 0.0;
+            nodes[t_index].transitionRate = 0.0;
             break;
         }
     }
@@ -1041,7 +1041,7 @@ void initialize(const int& t_randomEngineSeed, const pcg32& t_randomEngine) {
     numR = 0;
     reactingIndex.clear();
     for (unsigned index = 0; index < seedSize; ++index) {
-        nodes[index].m_state = "I";
+        nodes[index].state = "I";
         reactingIndex.emplace(index);
         for (const unsigned& neighbor : nodes[index].m_neighbors) {
             reactingIndex.emplace(neighbor);
@@ -1057,13 +1057,13 @@ void syncUpdate() {
     //* Do reactions according to each transition rate and add E,I into reacting nodes
     std::set<unsigned> newReactingIndex;
     for (const unsigned& index : reactingIndex) {
-        const int intState = stateToInt[nodes[index].m_state];
-        const double transitionProb = 1.0 - std::exp(-1.0 * nodes[index].m_transitionRate * deltaT);
+        const int intState = stateToInt[nodes[index].state];
+        const double transitionProb = 1.0 - std::exp(-1.0 * nodes[index].transitionRate * deltaT);
         switch (intState) {
             //* S process
             case 0: {
                 if (probabilityDistribution(randomEngine) <= transitionProb) {
-                    nodes[index].m_state = "E";
+                    nodes[index].state = "E";
                     --numS;
                     ++numE;
                     newReactingIndex.emplace(index);
@@ -1073,7 +1073,7 @@ void syncUpdate() {
             //* E process
             case 1: {
                 if (probabilityDistribution(randomEngine) <= transitionProb) {
-                    nodes[index].m_state = "I";
+                    nodes[index].state = "I";
                     --numE;
                     ++numI;
                 }
@@ -1083,7 +1083,7 @@ void syncUpdate() {
             //* I Process
             case 2: {
                 if (probabilityDistribution(randomEngine) <= transitionProb) {
-                    nodes[index].m_state = "R";
+                    nodes[index].state = "R";
                     --numI;
                     ++numR;
                 } else {
@@ -1097,9 +1097,9 @@ void syncUpdate() {
     //* Add neighbor S of I node into reacting nodes
     reactingIndex = newReactingIndex;
     for (const unsigned& index : newReactingIndex) {
-        if (nodes[index].m_state == "I") {
+        if (nodes[index].state == "I") {
             for (const unsigned& neighbor : nodes[index].m_neighbors) {
-                if (nodes[neighbor].m_state == "S") {
+                if (nodes[neighbor].state == "S") {
                     reactingIndex.emplace(neighbor);
                 }
             }
@@ -1117,7 +1117,7 @@ void asyncUpdate() {
     //* Calculate total transition rate and Delta time
     double totalTransitionRate = 0.0;
     for (const unsigned& index : reactingIndex) {
-        totalTransitionRate += nodes[index].m_transitionRate;
+        totalTransitionRate += nodes[index].transitionRate;
     }
     deltaT = std::log(1.0 / probabilityDistribution(randomEngine)) / totalTransitionRate;
     totalTransitionRate *= probabilityDistribution(randomEngine);
@@ -1129,47 +1129,47 @@ void asyncUpdate() {
     unsigned target;
     for (unsigned i = 0; i < shuffledReactingIndex.size(); ++i) {
         target = shuffledReactingIndex[i];
-        cumulativeTransitionRate += nodes[target].m_transitionRate;
+        cumulativeTransitionRate += nodes[target].transitionRate;
         if (cumulativeTransitionRate > totalTransitionRate) {
             break;
         }
     }
 
     //* React target node and update transition rate
-    const int intState = stateToInt[nodes[target].m_state];
+    const int intState = stateToInt[nodes[target].state];
     switch (intState) {
         //* S process
         case 0: {
-            nodes[target].m_state = "E";
+            nodes[target].state = "E";
             --numS;
             ++numE;
-            nodes[target].m_transitionRate = E_I;
+            nodes[target].transitionRate = E_I;
             break;
         }
         //* E process
         case 1: {
-            nodes[target].m_state = "I";
+            nodes[target].state = "I";
             --numE;
             ++numI;
-            nodes[target].m_transitionRate = I_R;
+            nodes[target].transitionRate = I_R;
             for (const unsigned& neighbor : nodes[target].m_neighbors) {
-                if (nodes[neighbor].m_state == "S") {
+                if (nodes[neighbor].state == "S") {
                     reactingIndex.emplace(neighbor);
-                    nodes[neighbor].m_transitionRate += SI_EI;
+                    nodes[neighbor].transitionRate += SI_EI;
                 }
             }
             break;
         }
         //* I Process
         case 2: {
-            nodes[target].m_state = "R";
+            nodes[target].state = "R";
             --numI;
             ++numR;
-            nodes[target].m_transitionRate = 0.0;
+            nodes[target].transitionRate = 0.0;
             for (const unsigned& neighbor : nodes[target].m_neighbors) {
-                if (nodes[neighbor].m_state == "S") {
-                    nodes[neighbor].m_transitionRate -= SI_EI;
-                    if (!nodes[neighbor].m_transitionRate) {
+                if (nodes[neighbor].state == "S") {
+                    nodes[neighbor].transitionRate -= SI_EI;
+                    if (!nodes[neighbor].transitionRate) {
                         reactingIndex.erase(neighbor);
                     }
                 }
@@ -1405,36 +1405,36 @@ unsigned numS, numE, numI, numR;
 
 //* Update transition rate of single node
 void updateTransitionRate(const unsigned& t_index) {
-    const int intState = stateToInt[nodes[t_index].m_state];
+    const int intState = stateToInt[nodes[t_index].state];
     switch (intState) {
         //* S process
         case 0: {
             unsigned exposedNeighbor = 0;
             unsigned infectiousNeighbor = 0;
             for (const unsigned& neighbor : nodes[t_index].m_neighbors) {
-                if (nodes[neighbor].m_state == "E") {
+                if (nodes[neighbor].state == "E") {
                     ++exposedNeighbor;
-                } else if (nodes[neighbor].m_state == "I") {
+                } else if (nodes[neighbor].state == "I") {
                     ++infectiousNeighbor;
                 }
             }
-            nodes[t_index].m_transitionRate = SE_EE * exposedNeighbor + SI_EI * infectiousNeighbor;
+            nodes[t_index].transitionRate = SE_EE * exposedNeighbor + SI_EI * infectiousNeighbor;
             break;
         }
 
         //* E process
         case 1: {
-            nodes[t_index].m_transitionRate = E_I;
+            nodes[t_index].transitionRate = E_I;
             break;
         }
         //* I process
         case 2: {
-            nodes[t_index].m_transitionRate = I_R;
+            nodes[t_index].transitionRate = I_R;
             break;
         }
         //* R process
         case 3: {
-            nodes[t_index].m_transitionRate = 0.0;
+            nodes[t_index].transitionRate = 0.0;
             break;
         }
     }
@@ -1459,7 +1459,7 @@ void initialize(const int& t_randomEngineSeed, const pcg32& t_randomEngine) {
     numR = 0;
     reactingIndex.clear();
     for (unsigned index = 0; index < seedSize; ++index) {
-        nodes[index].m_state = "I";
+        nodes[index].state = "I";
         reactingIndex.emplace(index);
         for (const unsigned& neighbor : nodes[index].m_neighbors) {
             reactingIndex.emplace(neighbor);
@@ -1475,13 +1475,13 @@ void syncUpdate() {
     //* Do reactions according to each transition rate and add E,I into reacting nodes
     std::set<unsigned> newReactingIndex;
     for (const unsigned& index : reactingIndex) {
-        const int intState = stateToInt[nodes[index].m_state];
-        const double transitionProb = 1.0 - std::exp(-1.0 * nodes[index].m_transitionRate * deltaT);
+        const int intState = stateToInt[nodes[index].state];
+        const double transitionProb = 1.0 - std::exp(-1.0 * nodes[index].transitionRate * deltaT);
         switch (intState) {
             //* S process
             case 0:
                 if (probabilityDistribution(randomEngine) <= transitionProb) {
-                    nodes[index].m_state = "E";
+                    nodes[index].state = "E";
                     --numS;
                     ++numE;
                     newReactingIndex.emplace(index);
@@ -1490,7 +1490,7 @@ void syncUpdate() {
             //* E process
             case 1: {
                 if (probabilityDistribution(randomEngine) <= transitionProb) {
-                    nodes[index].m_state = "I";
+                    nodes[index].state = "I";
                     --numE;
                     ++numI;
                 }
@@ -1500,7 +1500,7 @@ void syncUpdate() {
             //* I process
             case 2: {
                 if (probabilityDistribution(randomEngine) <= transitionProb) {
-                    nodes[index].m_state = "R";
+                    nodes[index].state = "R";
                     --numI;
                     ++numR;
                 } else {
@@ -1515,7 +1515,7 @@ void syncUpdate() {
     reactingIndex = newReactingIndex;
     for (const unsigned& index : newReactingIndex) {
         for (const unsigned& neighbor : nodes[index].m_neighbors) {
-            if (nodes[neighbor].m_state == "S") {
+            if (nodes[neighbor].state == "S") {
                 reactingIndex.emplace(neighbor);
             }
         }
@@ -1532,7 +1532,7 @@ void asyncUpdate() {
     //* Calculate total transition rate and Delta time
     double totalTransitionRate = 0.0;
     for (const unsigned& index : reactingIndex) {
-        totalTransitionRate += nodes[index].m_transitionRate;
+        totalTransitionRate += nodes[index].transitionRate;
     }
     deltaT = std::log(1.0 / probabilityDistribution(randomEngine)) / totalTransitionRate;
     totalTransitionRate *= probabilityDistribution(randomEngine);
@@ -1544,24 +1544,24 @@ void asyncUpdate() {
     unsigned target;
     for (unsigned i = 0; i < shuffledReactingIndex.size(); ++i) {
         target = shuffledReactingIndex[i];
-        cumulativeTransitionRate += nodes[target].m_transitionRate;
+        cumulativeTransitionRate += nodes[target].transitionRate;
         if (cumulativeTransitionRate > totalTransitionRate) {
             break;
         }
     }
 
     //* React target node and update transition rate
-    const int intState = stateToInt[nodes[target].m_state];
+    const int intState = stateToInt[nodes[target].state];
     switch (intState) {
         //* S process
         case 0: {
-            nodes[target].m_state = "E";
+            nodes[target].state = "E";
             --numS;
             ++numE;
-            nodes[target].m_transitionRate = E_I;
+            nodes[target].transitionRate = E_I;
             for (const unsigned& neighbor : nodes[target].m_neighbors) {
-                if (nodes[neighbor].m_state == "S") {
-                    nodes[neighbor].m_transitionRate += SE_EE;
+                if (nodes[neighbor].state == "S") {
+                    nodes[neighbor].transitionRate += SE_EE;
                     reactingIndex.emplace(neighbor);
                 }
             }
@@ -1569,13 +1569,13 @@ void asyncUpdate() {
         }
         //* E process
         case 1: {
-            nodes[target].m_state = "I";
+            nodes[target].state = "I";
             --numE;
             ++numI;
-            nodes[target].m_transitionRate = I_R;
+            nodes[target].transitionRate = I_R;
             for (const unsigned& neighbor : nodes[target].m_neighbors) {
-                if (nodes[neighbor].m_state == "S") {
-                    nodes[neighbor].m_transitionRate += SI_EI - SE_EE;
+                if (nodes[neighbor].state == "S") {
+                    nodes[neighbor].transitionRate += SI_EI - SE_EE;
                     reactingIndex.emplace(neighbor);
                 }
             }
@@ -1583,15 +1583,15 @@ void asyncUpdate() {
         }
         //* I Process
         case 2: {
-            nodes[target].m_state = "R";
+            nodes[target].state = "R";
             --numI;
             ++numR;
-            nodes[target].m_transitionRate = 0.0;
+            nodes[target].transitionRate = 0.0;
             reactingIndex.erase(target);
             for (const unsigned& neighbor : nodes[target].m_neighbors) {
-                if (nodes[neighbor].m_state == "S") {
-                    nodes[neighbor].m_transitionRate -= SI_EI;
-                    if (!nodes[neighbor].m_transitionRate) {
+                if (nodes[neighbor].state == "S") {
+                    nodes[neighbor].transitionRate -= SI_EI;
+                    if (!nodes[neighbor].transitionRate) {
                         reactingIndex.erase(neighbor);
                     }
                 }
