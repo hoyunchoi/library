@@ -11,15 +11,16 @@
 #include "pcg_random.hpp"
 #include "stringFormat.hpp"
 
-struct Node_Epidemic : public Node {
+template <typename T>
+struct Node_Epidemic : public Node<T> {
     //* Member variables
     std::string state;
     double transitionRate{0.0};
 
     //* Generator
     Node_Epidemic() {}
-    Node_Epidemic(const unsigned& t_index) : Node(t_index) {}
-    Node_Epidemic(const unsigned& t_index, const std::string& t_state) : Node(t_index), state(t_state) {}
+    Node_Epidemic(const T& t_index) : Node<T>(t_index) {}
+    Node_Epidemic(const T& t_index, const std::string& t_state) : Node<T>(t_index), state(t_state) {}
 };
 
 /*
@@ -37,7 +38,7 @@ unsigned seedSize;
 std::string networkType;
 unsigned networkSize;
 unsigned meanDegree;
-std::vector<Node_Epidemic> nodes;
+std::vector<Node_Epidemic<unsigned>> nodes;
 
 //* SIR rate parameter
 double SI_II;
@@ -56,16 +57,16 @@ const std::string fileName() {
 }
 
 //* Set Network
-void setNetwork(const Network& t_network) {
-    networkType = t_network.m_type;
-    networkSize = t_network.m_size;
-    meanDegree = t_network.m_meanDegree;
+void setNetwork(const Network<unsigned>& t_network) {
+    networkType = t_network.type;
+    networkSize = t_network.size;
+    meanDegree = t_network.meanDegree;
 
     nodes.clear();
     nodes.reserve(networkSize);
     for (unsigned index = 0; index < networkSize; ++index) {
         Node_Epidemic node(index, "S");
-        node.m_neighbors = t_network.m_adjacency[index];
+        node.neighbors = t_network.adjacency[index];
         nodes.emplace_back(node);
     }
 }
@@ -192,7 +193,7 @@ void updateTransitionRate(const unsigned& t_index) {
         //* S process
         case 0: {
             unsigned infectiousNeighbor = 0;
-            for (const unsigned& neighbor : nodes[t_index].m_neighbors) {
+            for (const unsigned& neighbor : nodes[t_index].neighbors) {
                 if (nodes[neighbor].state == "I") {
                     ++infectiousNeighbor;
                 }
@@ -233,7 +234,7 @@ void initialize(const int& t_randomEngineSeed, const pcg32& t_randomEngine) {
     for (unsigned index = 0; index < seedSize; ++index) {
         nodes[index].state = "I";
         reactingIndex.emplace(index);
-        for (const unsigned& neighbor : nodes[index].m_neighbors) {
+        for (const unsigned& neighbor : nodes[index].neighbors) {
             reactingIndex.emplace(neighbor);
         }
     }
@@ -277,7 +278,7 @@ void syncUpdate() {
     //* Add neighbor S of I node into reacting nodes
     reactingIndex = newReactingIndex;
     for (const unsigned& index : newReactingIndex) {
-        for (const unsigned& neighbor : nodes[index].m_neighbors) {
+        for (const unsigned& neighbor : nodes[index].neighbors) {
             if (nodes[neighbor].state == "S") {
                 reactingIndex.emplace(neighbor);
             }
@@ -321,7 +322,7 @@ void asyncUpdate() {
             --numS;
             ++numI;
             updateTransitionRate(target);
-            for (const unsigned& neighbor : nodes[target].m_neighbors) {
+            for (const unsigned& neighbor : nodes[target].neighbors) {
                 if (nodes[neighbor].state == "S") {
                     reactingIndex.emplace(neighbor);
                     updateTransitionRate(neighbor);
@@ -335,7 +336,7 @@ void asyncUpdate() {
             --numI;
             ++numR;
             reactingIndex.erase(target);
-            for (const unsigned& neighbor : nodes[target].m_neighbors) {
+            for (const unsigned& neighbor : nodes[target].neighbors) {
                 if (nodes[neighbor].state == "S") {
                     nodes[neighbor].transitionRate -= SI_II;
                     if (!nodes[neighbor].transitionRate) {
@@ -416,7 +417,7 @@ unsigned seedSize;
 std::string networkType;
 unsigned networkSize;
 unsigned meanDegree;
-std::vector<Node_Epidemic> nodes;
+std::vector<Node_Epidemic<unsigned>> nodes;
 
 //* SWIR rate parameter
 double SI_WI, WI_II, I_R;
@@ -434,16 +435,16 @@ const std::string fileName() {
 }
 
 //* Set Network
-void setNetwork(const Network& t_network) {
-    networkType = t_network.m_type;
-    networkSize = t_network.m_size;
-    meanDegree = t_network.m_meanDegree;
+void setNetwork(const Network<unsigned>& t_network) {
+    networkType = t_network.type;
+    networkSize = t_network.size;
+    meanDegree = t_network.meanDegree;
 
     nodes.clear();
     nodes.reserve(networkSize);
     for (unsigned index = 0; index < networkSize; ++index) {
         Node_Epidemic node(index, "S");
-        node.m_neighbors = t_network.m_adjacency[index];
+        node.neighbors = t_network.adjacency[index];
         nodes.emplace_back(node);
     }
 }
@@ -575,7 +576,7 @@ void updateTransitionRate(const unsigned& t_index) {
         //* S process
         case 0: {
             unsigned infectiousNeighbor = 0;
-            for (const unsigned& neighbor : nodes[t_index].m_neighbors) {
+            for (const unsigned& neighbor : nodes[t_index].neighbors) {
                 if (nodes[neighbor].state == "I") {
                     ++infectiousNeighbor;
                 }
@@ -586,7 +587,7 @@ void updateTransitionRate(const unsigned& t_index) {
         //* W process
         case 1: {
             unsigned infectiousNeighbor = 0;
-            for (const unsigned& neighbor : nodes[t_index].m_neighbors) {
+            for (const unsigned& neighbor : nodes[t_index].neighbors) {
                 if (nodes[neighbor].state == "I") {
                     ++infectiousNeighbor;
                 }
@@ -627,7 +628,7 @@ void initialize(const int& t_randomEngineSeed, const pcg32& t_randomEngine) {
     for (unsigned index = 0; index < seedSize; ++index) {
         nodes[index].state = "I";
         reactingIndex.emplace(index);
-        for (const unsigned& neighbor : nodes[index].m_neighbors) {
+        for (const unsigned& neighbor : nodes[index].neighbors) {
             reactingIndex.emplace(neighbor);
         }
     }
@@ -680,7 +681,7 @@ void syncUpdate() {
     //* Add neighbor of S,W of I node into reacting nodes
     reactingIndex = newReactingIndex;
     for (const unsigned& index : newReactingIndex) {
-        for (const unsigned& neighbor : nodes[index].m_neighbors) {
+        for (const unsigned& neighbor : nodes[index].neighbors) {
             if (nodes[neighbor].state == "S" || nodes[neighbor].state == "W") {
                 reactingIndex.emplace(neighbor);
             }
@@ -733,7 +734,7 @@ void asyncUpdate() {
             --numW;
             ++numI;
             nodes[target].transitionRate = I_R;
-            for (const unsigned& neighbor : nodes[target].m_neighbors) {
+            for (const unsigned& neighbor : nodes[target].neighbors) {
                 if (nodes[neighbor].state == "S") {
                     nodes[neighbor].transitionRate += SI_WI;
                     reactingIndex.emplace(neighbor);
@@ -751,7 +752,7 @@ void asyncUpdate() {
             ++numR;
             nodes[target].transitionRate = 0.0;
             reactingIndex.erase(target);
-            for (const unsigned& neighbor : nodes[target].m_neighbors) {
+            for (const unsigned& neighbor : nodes[target].neighbors) {
                 if (nodes[neighbor].state == "S") {
                     nodes[neighbor].transitionRate -= SI_WI;
                     if (!nodes[neighbor].transitionRate) {
@@ -837,7 +838,7 @@ unsigned seedSize;
 std::string networkType;
 unsigned networkSize;
 unsigned meanDegree;
-std::vector<Node_Epidemic> nodes;
+std::vector<Node_Epidemic<unsigned>> nodes;
 
 //* SEIR rate parameter
 double SI_EI, E_I, I_R;
@@ -856,16 +857,16 @@ const std::string fileName() {
 }
 
 //* Set Network
-void setNetwork(const Network& t_network) {
-    networkType = t_network.m_type;
-    networkSize = t_network.m_size;
-    meanDegree = t_network.m_meanDegree;
+void setNetwork(const Network<unsigned>& t_network) {
+    networkType = t_network.type;
+    networkSize = t_network.size;
+    meanDegree = t_network.meanDegree;
 
     nodes.clear();
     nodes.reserve(networkSize);
     for (unsigned index = 0; index < networkSize; ++index) {
         Node_Epidemic node(index, "S");
-        node.m_neighbors = t_network.m_adjacency[index];
+        node.neighbors = t_network.adjacency[index];
         nodes.emplace_back(node);
     }
 }
@@ -996,7 +997,7 @@ void updateTransitionRate(const unsigned& t_index) {
         //* S process
         case 0: {
             unsigned infectiousNeighbor = 0;
-            for (const unsigned& neighbor : nodes[t_index].m_neighbors) {
+            for (const unsigned& neighbor : nodes[t_index].neighbors) {
                 if (nodes[neighbor].state == "I") {
                     ++infectiousNeighbor;
                 }
@@ -1043,7 +1044,7 @@ void initialize(const int& t_randomEngineSeed, const pcg32& t_randomEngine) {
     for (unsigned index = 0; index < seedSize; ++index) {
         nodes[index].state = "I";
         reactingIndex.emplace(index);
-        for (const unsigned& neighbor : nodes[index].m_neighbors) {
+        for (const unsigned& neighbor : nodes[index].neighbors) {
             reactingIndex.emplace(neighbor);
         }
     }
@@ -1098,7 +1099,7 @@ void syncUpdate() {
     reactingIndex = newReactingIndex;
     for (const unsigned& index : newReactingIndex) {
         if (nodes[index].state == "I") {
-            for (const unsigned& neighbor : nodes[index].m_neighbors) {
+            for (const unsigned& neighbor : nodes[index].neighbors) {
                 if (nodes[neighbor].state == "S") {
                     reactingIndex.emplace(neighbor);
                 }
@@ -1152,7 +1153,7 @@ void asyncUpdate() {
             --numE;
             ++numI;
             nodes[target].transitionRate = I_R;
-            for (const unsigned& neighbor : nodes[target].m_neighbors) {
+            for (const unsigned& neighbor : nodes[target].neighbors) {
                 if (nodes[neighbor].state == "S") {
                     reactingIndex.emplace(neighbor);
                     nodes[neighbor].transitionRate += SI_EI;
@@ -1166,7 +1167,7 @@ void asyncUpdate() {
             --numI;
             ++numR;
             nodes[target].transitionRate = 0.0;
-            for (const unsigned& neighbor : nodes[target].m_neighbors) {
+            for (const unsigned& neighbor : nodes[target].neighbors) {
                 if (nodes[neighbor].state == "S") {
                     nodes[neighbor].transitionRate -= SI_EI;
                     if (!nodes[neighbor].transitionRate) {
@@ -1248,7 +1249,7 @@ unsigned seedSize;
 std::string networkType;
 unsigned networkSize;
 unsigned meanDegree;
-std::vector<Node_Epidemic> nodes;
+std::vector<Node_Epidemic<unsigned>> nodes;
 
 //* GSEIR rate parameter
 double SE_EE, SI_EI, E_I, I_R;
@@ -1266,16 +1267,16 @@ const std::string fileName() {
 }
 
 //* Set Network
-void setNetwork(const Network& t_network) {
-    networkType = t_network.m_type;
-    networkSize = t_network.m_size;
-    meanDegree = t_network.m_meanDegree;
+void setNetwork(const Network<unsigned>& t_network) {
+    networkType = t_network.type;
+    networkSize = t_network.size;
+    meanDegree = t_network.meanDegree;
 
     nodes.clear();
     nodes.reserve(networkSize);
     for (unsigned index = 0; index < networkSize; ++index) {
         Node_Epidemic node(index, "S");
-        node.m_neighbors = t_network.m_adjacency[index];
+        node.neighbors = t_network.adjacency[index];
         nodes.emplace_back(node);
     }
 }
@@ -1411,7 +1412,7 @@ void updateTransitionRate(const unsigned& t_index) {
         case 0: {
             unsigned exposedNeighbor = 0;
             unsigned infectiousNeighbor = 0;
-            for (const unsigned& neighbor : nodes[t_index].m_neighbors) {
+            for (const unsigned& neighbor : nodes[t_index].neighbors) {
                 if (nodes[neighbor].state == "E") {
                     ++exposedNeighbor;
                 } else if (nodes[neighbor].state == "I") {
@@ -1461,7 +1462,7 @@ void initialize(const int& t_randomEngineSeed, const pcg32& t_randomEngine) {
     for (unsigned index = 0; index < seedSize; ++index) {
         nodes[index].state = "I";
         reactingIndex.emplace(index);
-        for (const unsigned& neighbor : nodes[index].m_neighbors) {
+        for (const unsigned& neighbor : nodes[index].neighbors) {
             reactingIndex.emplace(neighbor);
         }
     }
@@ -1514,7 +1515,7 @@ void syncUpdate() {
     //* Add neighbor of S of E,I node into reacting nodes
     reactingIndex = newReactingIndex;
     for (const unsigned& index : newReactingIndex) {
-        for (const unsigned& neighbor : nodes[index].m_neighbors) {
+        for (const unsigned& neighbor : nodes[index].neighbors) {
             if (nodes[neighbor].state == "S") {
                 reactingIndex.emplace(neighbor);
             }
@@ -1559,7 +1560,7 @@ void asyncUpdate() {
             --numS;
             ++numE;
             nodes[target].transitionRate = E_I;
-            for (const unsigned& neighbor : nodes[target].m_neighbors) {
+            for (const unsigned& neighbor : nodes[target].neighbors) {
                 if (nodes[neighbor].state == "S") {
                     nodes[neighbor].transitionRate += SE_EE;
                     reactingIndex.emplace(neighbor);
@@ -1573,7 +1574,7 @@ void asyncUpdate() {
             --numE;
             ++numI;
             nodes[target].transitionRate = I_R;
-            for (const unsigned& neighbor : nodes[target].m_neighbors) {
+            for (const unsigned& neighbor : nodes[target].neighbors) {
                 if (nodes[neighbor].state == "S") {
                     nodes[neighbor].transitionRate += SI_EI - SE_EE;
                     reactingIndex.emplace(neighbor);
@@ -1588,7 +1589,7 @@ void asyncUpdate() {
             ++numR;
             nodes[target].transitionRate = 0.0;
             reactingIndex.erase(target);
-            for (const unsigned& neighbor : nodes[target].m_neighbors) {
+            for (const unsigned& neighbor : nodes[target].neighbors) {
                 if (nodes[neighbor].state == "S") {
                     nodes[neighbor].transitionRate -= SI_EI;
                     if (!nodes[neighbor].transitionRate) {
