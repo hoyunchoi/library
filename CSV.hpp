@@ -9,38 +9,32 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-
+#include <limits>
 //* Write and Read CSV file
 namespace CSV {
 //* Write
 template <typename T, typename TT>
-void write(const std::string& t_writeFile, const std::map<T, TT>& t_data, const char t_seperate = ',', const int& precision = 0) {
+void write(const std::string& t_writeFile, const std::map<T, TT>& t_data, const char t_seperate = ',', const int& t_precision = 6) {
     std::ofstream writeFile(t_writeFile);
-    if (precision) {
-        writeFile.precision(precision);
-    }
+    t_precision < 0 ? writeFile.precision(std::numeric_limits<double>::digits10+1) : writeFile.precision(t_precision);
     for (const auto& row : t_data) {
         writeFile << row.first << t_seperate << row.second << "\n";
     }
 }
 
 template <typename T, typename TT, typename TTT>
-void write(const std::string& t_writeFile, const std::map<std::pair<T, TT>, TTT>& t_data, const char t_seperate = ',', const int& precision = 0) {
+void write(const std::string& t_writeFile, const std::map<std::pair<T, TT>, TTT>& t_data, const char t_seperate = ',', const int& t_precision = 6) {
     std::ofstream writeFile(t_writeFile);
-    if (precision) {
-        writeFile.precision(precision);
-    }
+    t_precision < 0 ? writeFile.precision(std::numeric_limits<double>::digits10+1) : writeFile.precision(t_precision);
     for (const auto& row : t_data) {
         writeFile << row.first.first << t_seperate << row.first.second << t_seperate << row.second << "\n";
     }
 }
 
 template <typename T, typename TT>
-void write(const std::string& t_writeFile, const std::map<T, std::vector<TT>>& t_data, const char t_seperate = ',', const int& precision = 0) {
+void write(const std::string& t_writeFile, const std::map<T, std::vector<TT>>& t_data, const char t_seperate = ',', const int& t_precision = 6) {
     std::ofstream writeFile(t_writeFile);
-    if (precision){
-        writeFile.precision(precision);
-    }
+    t_precision < 0 ? writeFile.precision(std::numeric_limits<double>::digits10+1) : writeFile.precision(t_precision);
     for (const auto& row : t_data){
         writeFile << row.first << t_seperate;
         for (unsigned i=0; i<row.second.size()-1; ++i){
@@ -51,20 +45,16 @@ void write(const std::string& t_writeFile, const std::map<T, std::vector<TT>>& t
 }
 
 template <typename T>
-void write(const std::string& t_writeFile, const std::vector<T>& t_data, const int& precision = 0) {
+void write(const std::string& t_writeFile, const std::vector<T>& t_data, const int& t_precision = 6) {
     std::ofstream writeFile(t_writeFile);
-    if (precision) {
-        writeFile.precision(precision);
-    }
+    t_precision < 0 ? writeFile.precision(std::numeric_limits<double>::digits10+1) : writeFile.precision(t_precision);
     std::copy(t_data.begin(), t_data.end(), std::ostream_iterator<T>(writeFile, "\n"));
 }
 
 template <typename T>
-void write(const std::string t_writeFile, const std::vector<std::vector<T>>& t_data, const char t_seperate = ',', const int& precision = 0) {
+void write(const std::string t_writeFile, const std::vector<std::vector<T>>& t_data, const char t_seperate = ',', const int& t_precision = 6) {
     std::ofstream writeFile(t_writeFile);
-    if (precision) {
-        writeFile.precision(precision);
-    }
+    t_precision < 0 ? writeFile.precision(std::numeric_limits<double>::digits10+1) : writeFile.precision(t_precision);
     for (const std::vector<T>& row : t_data) {
         for (unsigned i = 0; i < row.size() - 1; ++i) {
             writeFile << row[i] << t_seperate;
@@ -74,93 +64,73 @@ void write(const std::string t_writeFile, const std::vector<std::vector<T>>& t_d
 }
 
 //* Read
-void read(const std::string& t_readFile, std::vector<double>& t_data) {
+std::ifstream check(const std::string& t_readFile){
     std::ifstream readFile(t_readFile);
-    if (readFile.fail()) {
+    if (readFile.fail()){
         std::cout << "No such file : " << t_readFile << std::endl;
         exit(1);
     }
-    t_data.clear();
+    return readFile;
+}
+
+void read(const std::string& t_readFile, std::vector<double>& t_data) {
+    std::ifstream readFile = check(t_readFile);
     std::string row;
+    t_data.clear();
     while (getline(readFile, row)) {
         t_data.emplace_back(std::stod(row));
     }
 }
 void read(const std::string& t_readFile, std::vector<int>& t_data) {
-    std::ifstream readFile(t_readFile);
-    if (readFile.fail()) {
-        std::cout << "No such file : " << t_readFile << std::endl;
-        exit(1);
-    }
-    t_data.clear();
+    std::ifstream readFile = check(t_readFile);
     std::string row;
+    t_data.clear();
     while (getline(readFile, row)) {
         t_data.emplace_back(std::stoi(row));
     }
 }
 void read(const std::string& t_readFile, std::vector<unsigned>& t_data) {
-    std::ifstream readFile(t_readFile);
-    if (readFile.fail()) {
-        std::cout << "No such file : " << t_readFile << std::endl;
-        exit(1);
-    }
-    t_data.clear();
+    std::ifstream readFile = check(t_readFile);
     std::string row;
+    t_data.clear();
     while (getline(readFile, row)) {
         t_data.emplace_back(std::stoul(row));
     }
 }
 
 void read(const std::string& t_readFile, std::vector<std::vector<double>>& t_data, const char t_seperate = ',') {
-    std::ifstream readFile(t_readFile);
-    if (readFile.fail()) {
-        std::cout << "No such file : " << t_readFile << std::endl;
-        exit(1);
-    }
-    t_data.clear();
+    std::ifstream readFile = check(t_readFile);
     std::string row, column;
-    std::vector<double> rowvector;
+    t_data.clear();
     while (getline(readFile, row)) {
         std::stringstream rowstream(row);
-        rowvector.clear();
+        std::vector<double> rowvector;
         while (getline(rowstream, column, t_seperate)) {
             rowvector.emplace_back(std::stod(column));
         }
         t_data.emplace_back(rowvector);
     }
 }
-
 void read(const std::string& t_readFile, std::vector<std::vector<int>>& t_data, const char t_seperate = ',') {
-    std::ifstream readFile(t_readFile);
-    if (readFile.fail()) {
-        std::cout << "No such file : " << t_readFile << std::endl;
-        exit(1);
-    }
-    t_data.clear();
+    std::ifstream readFile = check(t_readFile);
     std::string row, column;
-    std::vector<int> rowvector;
+    t_data.clear();
     while (getline(readFile, row)) {
         std::stringstream rowstream(row);
-        rowvector.clear();
+        std::vector<int> rowvector;
         while (getline(rowstream, column, t_seperate)) {
             rowvector.emplace_back(std::stoi(column));
         }
         t_data.emplace_back(rowvector);
     }
 }
-
 void read(const std::string& t_readFile, std::vector<std::vector<unsigned>>& t_data, const char t_seperate = ',') {
-    std::ifstream readFile(t_readFile);
-    if (readFile.fail()) {
-        std::cout << "No such file : " << t_readFile << std::endl;
-        exit(1);
-    }
-    t_data.clear();
+    std::ifstream readFile = check(t_readFile);
     std::string row, column;
-    std::vector<unsigned> rowvector;
+    t_data.clear();
     while (getline(readFile, row)) {
         std::stringstream rowstream(row);
-        rowvector.clear();
+        std::vector<unsigned> rowvector;
         while (getline(rowstream, column, t_seperate)) {
             rowvector.emplace_back(std::stoul(column));
         }
@@ -169,13 +139,9 @@ void read(const std::string& t_readFile, std::vector<std::vector<unsigned>>& t_d
 }
 
 void read(const std::string& t_readFile, std::map<double, double>& t_data, const char t_seperate = ',') {
-    std::ifstream readFile(t_readFile);
-    if (readFile.fail()) {
-        std::cout << "No such file : " << t_readFile << std::endl;
-        exit(1);
-    }
-    t_data.clear();
+    std::ifstream readFile = check(t_readFile);
     std::string row, key, value;
+    t_data.clear();
     while (getline(readFile, row)) {
         std::stringstream rowstream(row);
         int i = 0;
@@ -190,13 +156,9 @@ void read(const std::string& t_readFile, std::map<double, double>& t_data, const
 }
 
 void read(const std::string& t_readFile, std::map<int, double>& t_data, const char t_seperate = ',') {
-    std::ifstream readFile(t_readFile);
-    if (readFile.fail()) {
-        std::cout << "No such file : " << t_readFile << std::endl;
-        exit(1);
-    }
-    t_data.clear();
+    std::ifstream readFile = check(t_readFile);
     std::string row, key, value;
+    t_data.clear();
     while (getline(readFile, row)) {
         std::stringstream rowstream(row);
         int i = 0;
@@ -212,13 +174,9 @@ void read(const std::string& t_readFile, std::map<int, double>& t_data, const ch
 }
 
 void read(const std::string& t_readFile, std::map<std::pair<int, int>, double>& t_data, const char t_seperate = ',') {
-    std::ifstream readFile(t_readFile);
-    if (readFile.fail()) {
-        std::cout << "No such file: " << t_readFile << std::endl;
-        exit(1);
-    }
-    t_data.clear();
+    std::ifstream readFile = check(t_readFile);
     std::string row, firstKey, secondKey, value;
+    t_data.clear();
     while (getline(readFile, row)) {
         std::stringstream rowstream(row);
         int i = 0;
@@ -237,16 +195,12 @@ void read(const std::string& t_readFile, std::map<std::pair<int, int>, double>& 
 }
 
 void read(const std::string& t_readFile, std::map<int, std::vector<double>>& t_data, const char t_seperate = ','){
-    std::ifstream readFile(t_readFile);
-    if (readFile.fail()){
-        std::cout << "No such file: " << t_readFile << std::endl;
-        exit(1);
-    }
-    t_data.clear();
+    std::ifstream readFile = check(t_readFile);
     std::string row, key, value;
-    std::vector<double> valueVec;
+    t_data.clear();
     while (getline(readFile, row)){
         std::stringstream rowstream(row);
+        std::vector<double> valueVec;
         int i=0;
         while (getline(rowstream, value, t_seperate)){
             if (i==0){
@@ -258,11 +212,9 @@ void read(const std::string& t_readFile, std::map<int, std::vector<double>>& t_d
             ++i;
         }
         t_data[std::stoi(key)] = valueVec;
-        valueVec.clear();
     }
     return;
 }
-
 
 //* Define new directory
 void generateDirectory(const std::string& t_directory){
@@ -273,9 +225,10 @@ void generateDirectory(const std::string& t_directory){
 }
 
 //* Delete File
-void deleteFile(const std::string& t_deleteFileName) {
-    if (std::remove(t_deleteFileName.c_str())) {
-        std::cout << "Error in removing " << t_deleteFileName << "\n";
+void deleteFile(const std::string& t_deleteFile) {
+    if (std::remove(t_deleteFile.c_str())) {
+        std::cout << "Error in removing " << t_deleteFile << "\n";
     }
+    return;
 }
 }  // namespace CSV
