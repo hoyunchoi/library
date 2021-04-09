@@ -37,10 +37,9 @@ std::vector<T> operator+(const std::vector<T>& t_vec1, const std::vector<T>& t_v
 }
 template <typename T>
 std::vector<T>& operator+=(std::vector<T>& t_vec1, const std::vector<T>& t_vec2) {
-    if (t_vec1.empty()){
+    if (t_vec1.empty()) {
         t_vec1.resize(t_vec2.size());
-    }
-    else if (t_vec1.size() != t_vec2.size()) {
+    } else if (t_vec1.size() != t_vec2.size()) {
         std::cout << "In plus operation, two vectors have different length" << std::endl;
         exit(1);
     }
@@ -491,7 +490,7 @@ T accumulate(const std::vector<T>& t_vec) {
 
 //* Pop back of vector
 template <typename T>
-void popBack(std::vector<T>& t_vec){
+void popBack(std::vector<T>& t_vec) {
     t_vec.pop_back();
     return;
 }
@@ -625,36 +624,48 @@ TT accumulate(const std::map<T, TT>& t_map) {
 
 //* pop back of map
 template <typename T, typename TT>
-void popBack(std::map<T, TT>& t_map){
+void popBack(std::map<T, TT>& t_map) {
     t_map.erase(t_map.end()->first);
     return;
 }
 
 //* print
 template <typename T>
-void print(const std::vector<T>& t_vec, const char& t_seperate = ',') {
-    std::cout << "(";
-    for (const T& e : t_vec) {
-        std::cout << e << t_seperate;
+void print(const std::vector<T>& t_vec, const int& t_precision = 6, const char& t_seperate = ',') {
+    t_precision < 0 ? std::cout.precision(std::numeric_limits<double>::digits10 + 1) : std::cout.precision(t_precision);
+    std::cout << "[";
+    for (unsigned i = 0; i < t_vec.size() - 1; ++i) {
+        std::cout << t_vec[i] << t_seperate;
     }
-    std::cout << ")\n";
+    std::cout << t_vec.back() << "]\n";
+    std::cout.precision(6);
 }
 
 template <typename T>
-void print(const std::vector<std::vector<T>>& t_mat, const char& t_seperate = ',') {
-    for (const std::vector<T>& vec : t_mat) {
-        for (const T& e : vec) {
-            std::cout << e << t_seperate;
+void print(const std::vector<std::vector<T>>& t_mat, const int& t_precision = 6, const char& t_seperate = ',') {
+    t_precision < 0 ? std::cout.precision(std::numeric_limits<double>::digits10 + 1) : std::cout.precision(t_precision);
+    std::cout << "[";
+    for (unsigned i = 0; i < t_mat.size() - 1; ++i) {
+        std::cout << "[";
+        for (unsigned j = 0; j < t_mat[i].size() - 1; ++j) {
+            std::cout << t_mat[i][j] << t_seperate;
         }
-        std::cout << "\n";
+        std::cout << t_mat[i].back() << "]\n";
     }
+    for (unsigned j = 0; j < t_mat.back().size() - 1; ++j) {
+        std::cout << t_mat.back()[j] << t_seperate;
+    }
+    std::cout << t_mat.back().back() << "]]\n";
+    std::cout.precision(6);
 }
 
 template <typename T, typename TT>
-void print(const std::map<T, TT>& t_map, const char& t_seperate = ',') {
+void print(const std::map<T, TT>& t_map, const int& t_precision = 6, const char& t_seperate = ',') {
+    t_precision < 0 ? std::cout.precision(std::numeric_limits<double>::digits10 + 1) : std::cout.precision(t_precision);
     for (const auto& e : t_map) {
         std::cout << e.first << "," << e.second << "\n";
     }
+    std::cout.precision(6);
 }
 
 }  // namespace linearAlgebra
