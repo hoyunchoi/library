@@ -76,8 +76,7 @@ std::vector<T>& operator-=(std::vector<T>& t_vec1, const std::vector<T>& t_vec2)
 
 //* matrix + matrix -> matrix
 template <typename T>
-std::vector<std::vector<T>> operator+(const std::vector<std::vector<T>>& t_mat1,
-                                      const std::vector<std::vector<T>>& t_mat2) {
+std::vector<std::vector<T>> operator+(const std::vector<std::vector<T>>& t_mat1, const std::vector<std::vector<T>>& t_mat2) {
     if (t_mat1.size() != t_mat2.size() || t_mat1[0].size() != t_mat2[0].size()) {
         std::cout << "In plus operation, two matrices have different size" << std::endl;
         exit(1);
@@ -92,8 +91,7 @@ std::vector<std::vector<T>> operator+(const std::vector<std::vector<T>>& t_mat1,
     return result;
 }
 template <typename T>
-std::vector<std::vector<T>>& operator+=(std::vector<std::vector<T>>& t_mat1,
-                                        const std::vector<std::vector<T>>& t_mat2) {
+std::vector<std::vector<T>>& operator+=(std::vector<std::vector<T>>& t_mat1, const std::vector<std::vector<T>>& t_mat2) {
     if (t_mat1.size() != t_mat2.size() || t_mat1[0].size() != t_mat2[0].size()) {
         std::cout << "In plus operation, two matrices have different size" << std::endl;
         exit(1);
@@ -108,8 +106,7 @@ std::vector<std::vector<T>>& operator+=(std::vector<std::vector<T>>& t_mat1,
 
 //* matrix - matrix -> matrix
 template <typename T>
-std::vector<std::vector<T>> operator-(const std::vector<std::vector<T>>& t_mat1,
-                                      const std::vector<std::vector<T>>& t_mat2) {
+std::vector<std::vector<T>> operator-(const std::vector<std::vector<T>>& t_mat1, const std::vector<std::vector<T>>& t_mat2) {
     if (t_mat1.size() != t_mat2.size() || t_mat1[0].size() != t_mat2[0].size()) {
         std::cout << "In plus operation, two matrices have different size" << std::endl;
         exit(1);
@@ -125,8 +122,7 @@ std::vector<std::vector<T>> operator-(const std::vector<std::vector<T>>& t_mat1,
     return result;
 }
 template <typename T>
-std::vector<std::vector<T>>& operator-=(std::vector<std::vector<T>>& t_mat1,
-                                        const std::vector<std::vector<T>>& t_mat2) {
+std::vector<std::vector<T>>& operator-=(std::vector<std::vector<T>>& t_mat1, const std::vector<std::vector<T>>& t_mat2) {
     if (t_mat1.size() != t_mat2.size() || t_mat1[0].size() != t_mat2[0].size()) {
         std::cout << "In plus operation, two matrices have different size" << std::endl;
         exit(1);
