@@ -62,7 +62,7 @@ mpl.rcParams.update(new_rc_params)
 #* log-log scale linear fitting of (x,y). output two points at x=xFit[0], xFit[1] including offset
 #* return xFit, yFit, gradient, residual
 
-
+#* x scale and y scale are log
 def logFit(x, y, start=None, end=None, offset=0.0):
     if not start:
         start = x[0]
@@ -73,7 +73,7 @@ def logFit(x, y, start=None, end=None, offset=0.0):
     fitY = np.power(10.0, poly[1] - offset) * np.power(fitX, poly[0])
     return fitX, fitY, poly[0], residual
 
-
+#* x scale is linear, y scale is log
 def linLogFit(x, y, start=None, end=None, offset=0.0):
     if not start:
         start = x[0]
@@ -84,7 +84,7 @@ def linLogFit(x, y, start=None, end=None, offset=0.0):
     fitY = np.power(10.0, poly[0] * fitX + poly[1] - offset)
     return fitX, fitY, poly[0], residual
 
-
+#* x scale is log, y scale is linear
 def logLinFit(x, y, start=None, end=None, offset=0.0):
     if not start:
         start = x[0]
@@ -93,6 +93,18 @@ def logLinFit(x, y, start=None, end=None, offset=0.0):
     poly, residual, _, _, _ = np.polyfit(np.log10(x), y, 1, full=True)
     fitX = np.array([start, end])
     fitY = poly[0] * np.log10(fitX) + poly[1] - offset
+    return fitX, fitY, poly[0], residual
+
+
+#* x scale and y scale are linear
+def linFit(x, y, start=None, end=None, offset=0.0):
+    if not start:
+        start = x[0]
+    if not end:
+        end = x[-1]
+    poly, residual, _, _, _ = np.polyfit(x, y, 1, full=True)
+    fitX = np.array([start, end])
+    fitY = poly[0] * fitX + poly[1] - offset
     return fitX, fitY, poly[0], residual
 
 
