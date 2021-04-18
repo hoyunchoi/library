@@ -59,7 +59,7 @@ void write(const std::string t_writeFile, const std::vector<std::vector<T>>& t_d
         for (unsigned i = 0; i < row.size() - 1; ++i) {
             writeFile << row[i] << t_seperate;
         }
-        writeFile << row.back() << "\n";s
+        writeFile << row.back() << "\n";
     }
 }
 
