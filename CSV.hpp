@@ -14,7 +14,7 @@
 namespace CSV {
 //* Write
 template <typename T, typename TT>
-void write(const std::string& t_writeFile, const std::map<T, TT>& t_data, const int& t_precision = 6, const char t_seperate = ',') {
+void write(const std::string& t_writeFile, const std::map<T, TT>& t_data, const int& t_precision = -1, const char t_seperate = ',') {
     std::ofstream writeFile(t_writeFile);
     t_precision < 0 ? writeFile.precision(std::numeric_limits<double>::digits10 + 1) : writeFile.precision(t_precision);
     for (const auto& row : t_data) {
@@ -23,7 +23,7 @@ void write(const std::string& t_writeFile, const std::map<T, TT>& t_data, const 
 }
 
 template <typename T, typename TT, typename TTT>
-void write(const std::string& t_writeFile, const std::map<std::pair<T, TT>, TTT>& t_data, const int& t_precision = 6, const char t_seperate = ',') {
+void write(const std::string& t_writeFile, const std::map<std::pair<T, TT>, TTT>& t_data, const int& t_precision = -1, const char t_seperate = ',') {
     std::ofstream writeFile(t_writeFile);
     t_precision < 0 ? writeFile.precision(std::numeric_limits<double>::digits10 + 1) : writeFile.precision(t_precision);
     for (const auto& row : t_data) {
@@ -32,7 +32,7 @@ void write(const std::string& t_writeFile, const std::map<std::pair<T, TT>, TTT>
 }
 
 template <typename T, typename TT>
-void write(const std::string& t_writeFile, const std::map<T, std::vector<TT>>& t_data, const int& t_precision = 6, const char t_seperate = ',') {
+void write(const std::string& t_writeFile, const std::map<T, std::vector<TT>>& t_data, const int& t_precision = -1, const char t_seperate = ',') {
     std::ofstream writeFile(t_writeFile);
     t_precision < 0 ? writeFile.precision(std::numeric_limits<double>::digits10 + 1) : writeFile.precision(t_precision);
     for (const auto& row : t_data) {
@@ -45,25 +45,21 @@ void write(const std::string& t_writeFile, const std::map<T, std::vector<TT>>& t
 }
 
 template <typename T>
-void write(const std::string& t_writeFile, const std::vector<T>& t_data, const int& t_precision = 6) {
+void write(const std::string& t_writeFile, const std::vector<T>& t_data, const int& t_precision = -1) {
     std::ofstream writeFile(t_writeFile);
     t_precision < 0 ? writeFile.precision(std::numeric_limits<double>::digits10 + 1) : writeFile.precision(t_precision);
-    // for (const T& row : t_data) {
-    //     writeFile << row << "\n";
-    // }
-
     std::copy(t_data.begin(), t_data.end(), std::ostream_iterator<T>(writeFile, "\n"));
 }
 
 template <typename T>
-void write(const std::string t_writeFile, const std::vector<std::vector<T>>& t_data, const int& t_precision = 6, const char t_seperate = ',') {
+void write(const std::string t_writeFile, const std::vector<std::vector<T>>& t_data, const int& t_precision = -1, const char t_seperate = ',') {
     std::ofstream writeFile(t_writeFile);
     t_precision < 0 ? writeFile.precision(std::numeric_limits<double>::digits10 + 1) : writeFile.precision(t_precision);
     for (const std::vector<T>& row : t_data) {
         for (unsigned i = 0; i < row.size() - 1; ++i) {
             writeFile << row[i] << t_seperate;
         }
-        writeFile << row.back() << "\n";
+        writeFile << row.back() << "\n";s
     }
 }
 
