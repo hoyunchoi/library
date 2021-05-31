@@ -287,7 +287,7 @@ Network<T> generate(const T& t_size, const unsigned long long& t_linkSize, const
     Network<T> SF(t_size);
     const double weightExponent = 1.0 / (t_degreeExponent - 1.0);
     std::uniform_real_distribution<double> probabilityDistribution(0.0, 1.0);
-    while (SF.m_linkSize < t_linkSize) {
+    while (SF.linkSize < t_linkSize) {
         T index1, index2;
         do {
             index1 = randomPowerLawDistribution(1, t_size, -weightExponent, probabilityDistribution(t_randomEngine)) - 1;
