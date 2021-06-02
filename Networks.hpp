@@ -1,7 +1,9 @@
 #pragma once
 
 #include <algorithm>
+#include <limits>
 #include <cmath>
+#include <deque>
 #include <deque>
 #include <fstream>
 #include <iostream>
@@ -9,21 +11,22 @@
 #include <random>
 #include <set>
 #include <string>
-#include <utility>  //* pair
+#include <utility> //* pair
 #include <vector>
 
+#include "CSV.hpp"
 #include "linearAlgebra.hpp"
 #include "pcg_random.hpp"
 
 template <typename T>
 struct Node {
-    public:
+  public:
     //* Member variables
     T index;
     std::set<T> neighbors;
 
     //* Constructor
-    public:
+  public:
     Node() {}
     Node(const T& t_index) : index(t_index) {}
 
@@ -39,7 +42,7 @@ struct Node {
 template <typename T>
 struct Network {
     //* Member variables
-    public:
+  public:
     std::string type;
     T size{0};
     unsigned long long linkSize{0};
@@ -47,7 +50,7 @@ struct Network {
     std::vector<std::set<T>> adjacency;
 
     //* Constructor
-    public:
+  public:
     Network() {}
     Network(const T& t_size) : size(t_size) {
         adjacency.assign(t_size, std::set<T>());
@@ -57,7 +60,7 @@ struct Network {
     void clear();
 
     //* Whether link between two input nodes is already exists
-    bool linkExists(const T&, const T&) const ;
+    bool linkExists(const T&, const T&) const;
 
     //* Add single link betweeen two input nodes
     //* If there is already a link, this function does nothing
@@ -68,19 +71,26 @@ struct Network {
     void deleteLink(const T&, const T&);
 
     //* Get number of degree
-    const std::map<T, T> getDegreeDist() const ;
+    const std::map<T, T> getDegreeDist() const;
+
+    //* Get distance between all nodes
+    const std::vector<std::vector<T>> getFullDistance() const;
 
     //* Print total information of network
-    void print(const std::string& t_fileName="") const ;
+    void print(const std::string& t_fileName = "") const;
 
     //* Print adjecency matrix
     void printAdjacency(const std::string& t_fileName = "", const bool t_append = false) const;
 
     //* Print degree distribution
-    void printDegreeDist(const std::string& t_fileName = "", const std::string& t_seperator = ",", const std::string& t_secondSeperator = "\n") const ;
-};  //* End of struct Network
+    void printDegreeDist(const std::string& t_fileName = "", const std::string& t_seperator = ",", const std::string& t_secondSeperator = "\n") const;
 
-template<typename T>
+    //* Load network from adjacency matrix
+    void loadAdjacency(const std::string& t_fileName = "");
+
+}; //* End of struct Network
+
+template <typename T>
 void Network<T>::clear() {
     //* Clear information about number of links
     linkSize = 0;
@@ -92,7 +102,7 @@ void Network<T>::clear() {
     }
 }
 
-template<typename T>
+template <typename T>
 bool Network<T>::linkExists(const T& t_index1, const T& t_index2) const {
     if (adjacency[t_index1].size() <= adjacency[t_index2].size()) {
         const auto candidates = adjacency[t_index1];
@@ -105,9 +115,9 @@ bool Network<T>::linkExists(const T& t_index1, const T& t_index2) const {
     }
 }
 
-template<typename T>
+template <typename T>
 void Network<T>::addLink(const T& t_index1, const T& t_index2) {
-    if (linkExists(t_index1, t_index2)){
+    if (linkExists(t_index1, t_index2)) {
         return;
     }
 
@@ -119,9 +129,9 @@ void Network<T>::addLink(const T& t_index1, const T& t_index2) {
     adjacency[t_index2].emplace(t_index1);
 }
 
-template<typename T>
+template <typename T>
 void Network<T>::deleteLink(const T& t_index1, const T& t_index2) {
-    if (!linkExists(t_index1, t_index2)){
+    if (!linkExists(t_index1, t_index2)) {
         return;
     }
 
@@ -133,21 +143,56 @@ void Network<T>::deleteLink(const T& t_index1, const T& t_index2) {
     adjacency[t_index2].erase(t_index1);
 }
 
-template<typename T>
+template <typename T>
 const std::map<T, T> Network<T>::getDegreeDist() const {
     std::map<T, T> degreeDist;
-    for (T index=0; index<size; ++index) {
+    for (T index = 0; index < size; ++index) {
         ++degreeDist[adjacency[index].size()];
     }
     return degreeDist;
 }
 
-template<typename T>
+template <typename T>
+const std::vector<std::vector<T>> Network<T>::getFullDistance() const {
+    //* Initialize distance as infinity (maximum value)
+    std::vector<std::vector<T>> fullDistance(size, std::vector<T>(size, std::numeric_limits<T>::max()));
+
+    //* Get shortest path using BFS algorithm
+    for (unsigned index = 0; index < size; ++index) {
+        //* Assing queue and visited for single index
+        std::deque<unsigned> queue;
+        std::vector<bool> visited(size, false);
+        std::vector<unsigned> distance(size, 0);
+
+        //* Start with initial node
+        queue.push_back(index);
+        visited[index] = true;
+
+        //* Iterate until reaching every possible nodes
+        while (!queue.empty()) {
+            const unsigned next = queue.front();
+            queue.pop_front();
+            fullDistance[index][next] = distance[next];
+
+            //* Check first visited neighbor of 'next'
+            for (const unsigned& nextNeighbor : adjacency[next]) {
+                if (!visited[nextNeighbor]) {
+                    distance[nextNeighbor] = distance[next] + 1;
+                    queue.push_back(nextNeighbor);
+                    visited[nextNeighbor] = true;
+                }
+            }
+        }
+    }
+    return fullDistance;
+}
+
+template <typename T>
 void Network<T>::print(const std::string& t_fileName) const {
     //* Specify out stream: given file or terminal
     std::streambuf* buf;
     std::ofstream file;
-    if (t_fileName.size()){
+    if (t_fileName.size()) {
         file.open(t_fileName);
         buf = file.rdbuf();
     } else {
@@ -174,7 +219,7 @@ void Network<T>::printAdjacency(const std::string& t_fileName, const bool t_appe
     //* Specify out stream: given file or terminal
     std::streambuf* buf;
     std::ofstream file;
-    if (t_fileName.size()){
+    if (t_fileName.size()) {
         t_append ? file.open(t_fileName, std::ios_base::app) : file.open(t_fileName);
         buf = file.rdbuf();
     } else {
@@ -191,14 +236,36 @@ void Network<T>::printAdjacency(const std::string& t_fileName, const bool t_appe
     }
 }
 
-template<typename T>
+template <typename T>
+void Network<T>::loadAdjacency(const std::string& t_fileName) {
+    //* Read raw adjacency matrix
+    std::vector<std::vector<int>> rawAdj;
+    CSV::read(t_fileName, rawAdj);
+
+    //* Get information
+    size = rawAdj.size();
+    adjacency.assign(size, std::set<T>());
+    linkSize = 0;
+    for (T index=0; index<size; ++index){
+        for (T neighbor = 0; neighbor < size - 1; ++neighbor){
+            if (rawAdj[index][neighbor]){
+                adjacency[index].emplace_hint(adjacency[index].end(), neighbor);
+                ++linkSize;
+            }
+        }
+    }
+    meanDegree = (double)linkSize / size;
+    linkSize /= 2;
+}
+
+template <typename T>
 void Network<T>::printDegreeDist(const std::string& t_fileName, const std::string& t_seperator, const std::string& t_secondSeperator) const {
     const std::map<T, T> degreeDist = getDegreeDist();
 
     //* Specify out stream: given file or terminal
     std::streambuf* buf;
     std::ofstream file;
-    if (t_fileName.size()){
+    if (t_fileName.size()) {
         file.open(t_fileName);
         buf = file.rdbuf();
     } else {
@@ -212,10 +279,9 @@ void Network<T>::printDegreeDist(const std::string& t_fileName, const std::strin
     }
 }
 
-
 //* Erdos-Renyi network
 namespace ER {
-template<typename T>
+template <typename T>
 Network<T> generate(const T& t_size, const double& t_probability, pcg32& t_randomEngine) {
     Network<T> ER(t_size);
     std::uniform_real_distribution<double> probabilityDistribution(0, 1);
@@ -231,7 +297,7 @@ Network<T> generate(const T& t_size, const double& t_probability, pcg32& t_rando
     return ER;
 }
 
-template<typename T>
+template <typename T>
 Network<T> generate(const T& t_size, const unsigned long long& t_linkSize, pcg32& t_randomEngine) {
     Network<T> ER(t_size);
     std::uniform_int_distribution<T> indexDistribution(0, t_size - 1);
@@ -247,7 +313,7 @@ Network<T> generate(const T& t_size, const unsigned long long& t_linkSize, pcg32
     ER.meanDegree = 2.0 * t_linkSize / t_size;
     return ER;
 }
-}  // namespace ER
+} // namespace ER
 
 //* Random Regular network
 namespace RR {
@@ -272,17 +338,17 @@ Network<T> generate(const T& t_size, const T& t_degree, pcg32& t_randomEngine) {
     RR.meanDegree = (double)t_degree;
     return RR;
 }
-}  // namespace RR
+} // namespace RR
 
 //* Scale free network
 namespace SF {
 //* power law distribution with input exponent excluding t_lower and t_upper
-template<typename T>
+template <typename T>
 T randomPowerLawDistribution(const int& t_lower, const T& t_upper, const double& t_exponent, const double& t_prob) {
     return std::pow((std::pow(t_upper + 0.5, t_exponent + 1) - std::pow(t_lower - 0.5, t_exponent + 1)) * t_prob + std::pow(t_lower - 0.5, t_exponent + 1), 1.0 / (t_exponent + 1)) + 0.5;
 }
 
-template<typename T>
+template <typename T>
 Network<T> generate(const T& t_size, const unsigned long long& t_linkSize, const double& t_degreeExponent, pcg32& t_randomEngine) {
     Network<T> SF(t_size);
     const double weightExponent = 1.0 / (t_degreeExponent - 1.0);
@@ -299,7 +365,7 @@ Network<T> generate(const T& t_size, const unsigned long long& t_linkSize, const
     SF.meanDegree = 2.0 * t_linkSize / t_size;
     return SF;
 }
-}  // namespace SF
+} // namespace SF
 
 //* Scale free network by Chung-Lu
 namespace CL {
@@ -334,12 +400,12 @@ Network<T> generate(const T& t_size, const unsigned long long& t_linkSize, const
     CL.meanDegree = 2.0 * t_linkSize / t_size;
     return CL;
 }
-}  // namespace CL
+} // namespace CL
 
 //* Weighted node
 template <typename T>
 struct WNode {
-    public:
+  public:
     //* Member variables
     T index;
     std::map<T, double> neighbors;
@@ -360,7 +426,7 @@ struct WNode {
 //* Weighted network
 template <typename T>
 struct WNetwork {
-    public:
+  public:
     //* Member variables
     std::string type;
     T size{0};
@@ -368,7 +434,7 @@ struct WNetwork {
     double meanDegree{0.0};
     std::vector<std::map<T, double>> wadjacency;
 
-    public:
+  public:
     //* Constructor
     WNetwork() {}
     WNetwork(const T& t_size) : size(t_size) {
@@ -382,19 +448,19 @@ struct WNetwork {
     void clear();
 
     //* Return weight if link exists or return 0
-    const double getWeight(const T&, const T&) const ;
+    const double getWeight(const T&, const T&) const;
 
     //* Add single link
-    void addLink(const T&, const T&, const double& t_weight=1.0);
+    void addLink(const T&, const T&, const double& t_weight = 1.0);
 
     //* Delete single link
     void deleteLink(const T&, const T&);
 
     //* Get normal degree distribution
-    const std::map<T, T> getDegreeDist() const ;
+    const std::map<T, T> getDegreeDist() const;
 
     //* Get node weight distribution
-    const std::map<double, T> getNodeWeightDist() const ;
+    const std::map<double, T> getNodeWeightDist() const;
 
     //* Print Adjacency matrix with bool (except node weight)
     void printAdjacency(const std::string& t_fileName = "", const bool t_append = false) const;
@@ -403,12 +469,12 @@ struct WNetwork {
     void printWAdjacency(const std::string& t_fileName = "", const bool t_append = false) const;
 
     //* Prind degree distribution
-    void printDegreeDist(const std::string& t_fileName = "", const std::string& t_seperator = ",", const std::string& t_secondSeperator = "\n") const ;
+    void printDegreeDist(const std::string& t_fileName = "", const std::string& t_seperator = ",", const std::string& t_secondSeperator = "\n") const;
 
     //* Prind node weight distribution
-    void printNodeWeightDist(const std::string& t_fileName = "", const std::string& t_seperator = ",", const std::string& t_secondSeperator = "\n") const ;
+    void printNodeWeightDist(const std::string& t_fileName = "", const std::string& t_seperator = ",", const std::string& t_secondSeperator = "\n") const;
 
-};  //* End of struct WNetwork
+}; //* End of struct WNetwork
 
 template <typename T>
 void WNetwork<T>::clear() {
@@ -438,7 +504,7 @@ const double WNetwork<T>::getWeight(const T& t_index1, const T& t_index2) const 
 
 template <typename T>
 void WNetwork<T>::addLink(const T& t_index1, const T& t_index2, const double& t_weight) {
-    if (getWeight(t_index1, t_index2)){
+    if (getWeight(t_index1, t_index2)) {
         return;
     }
     //* Update linksize information
@@ -451,7 +517,7 @@ void WNetwork<T>::addLink(const T& t_index1, const T& t_index2, const double& t_
 
 template <typename T>
 void WNetwork<T>::deleteLink(const T& t_index1, const T& t_index2) {
-    if (!getWeight(t_index1, t_index2)){
+    if (!getWeight(t_index1, t_index2)) {
         return;
     }
     //* Update linksize information
@@ -465,7 +531,7 @@ void WNetwork<T>::deleteLink(const T& t_index1, const T& t_index2) {
 template <typename T>
 const std::map<T, T> WNetwork<T>::getDegreeDist() const {
     std::map<T, T> degreeDist;
-    for (T index=0; index<size; ++index) {
+    for (T index = 0; index < size; ++index) {
         ++degreeDist[wadjacency[index].size() - 1];
     }
     return degreeDist;
@@ -480,13 +546,12 @@ const std::map<double, T> WNetwork<T>::getNodeWeightDist() const {
     return nodeWeightDist;
 }
 
-
 template <typename T>
 void WNetwork<T>::printAdjacency(const std::string& t_fileName, const bool t_append) const {
     //* Specify out stream: given file or terminal
     std::streambuf* buf;
     std::ofstream file;
-    if (t_fileName.size()){
+    if (t_fileName.size()) {
         t_append ? file.open(t_fileName, std::ios_base::app) : file.open(t_fileName);
         buf = file.rdbuf();
     } else {
@@ -503,13 +568,12 @@ void WNetwork<T>::printAdjacency(const std::string& t_fileName, const bool t_app
     }
 }
 
-
 template <typename T>
 void WNetwork<T>::printWAdjacency(const std::string& t_fileName, const bool t_append) const {
     //* Specify out stream: given file or terminal
     std::streambuf* buf;
     std::ofstream file;
-    if (t_fileName.size()){
+    if (t_fileName.size()) {
         t_append ? file.open(t_fileName, std::ios_base::app) : file.open(t_fileName);
         buf = file.rdbuf();
     } else {
@@ -533,7 +597,7 @@ void WNetwork<T>::printDegreeDist(const std::string& t_fileName, const std::stri
     //* Specify out stream: given file or terminal
     std::streambuf* buf;
     std::ofstream file;
-    if (t_fileName.size()){
+    if (t_fileName.size()) {
         file.open(t_fileName);
         buf = file.rdbuf();
     } else {
@@ -554,7 +618,7 @@ void WNetwork<T>::printNodeWeightDist(const std::string& t_fileName, const std::
     //* Specify out stream: given file or terminal
     std::streambuf* buf;
     std::ofstream file;
-    if (t_fileName.size()){
+    if (t_fileName.size()) {
         file.open(t_fileName);
         buf = file.rdbuf();
     } else {
@@ -567,7 +631,6 @@ void WNetwork<T>::printNodeWeightDist(const std::string& t_fileName, const std::
         out << it->first << t_seperator << it->second << t_secondSeperator;
     }
 }
-
 
 //* Weighted scale free network by Chung-Lu
 //* Degree distribution and node weight distribution follows same power law
@@ -630,4 +693,4 @@ WNetwork<T> generate(const T& t_size, const double& t_meanPopulation, const doub
     }
     return WCL;
 }
-}  // namespace WCL
+} // namespace WCL
