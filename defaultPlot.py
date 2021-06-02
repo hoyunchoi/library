@@ -17,8 +17,8 @@ new_rc_params = {
     'image.aspect': 'equal',
 
     #* line
-    'lines.linewidth': 4,
-    'lines.markersize': 15,
+    # 'lines.linewidth': 4,
+    # 'lines.markersize': 15,
 
     #* legend
     'legend.frameon': False,
