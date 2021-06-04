@@ -155,7 +155,7 @@ const std::map<T, T> Network<T>::getDegreeDist() const {
 template <typename T>
 const std::vector<std::vector<T>> Network<T>::getFullDistance() const {
     //* Initialize distance as infinity (maximum value)
-    std::vector<std::vector<T>> fullDistance(size, std::vector<T>(size, std::numeric_limits<T>::max()));
+    std::vector<std::vector<T>> fullDistance(size, std::vector<T>(size, 0));
 
     //* Get shortest path using BFS algorithm
     for (unsigned index = 0; index < size; ++index) {

@@ -1,7 +1,7 @@
 import math
 
 
-def __sci__(value, digit):
+def _sci(value, digit):
     if value == 0:
         return ""
     exponent = math.floor(math.log10(value))
@@ -14,7 +14,7 @@ def __sci__(value, digit):
         return "{}\\times 10^".format(residual) + "{" + str(exponent) + "}"
 
 
-def __float__(value, digit):
+def _float(value, digit):
     if (digit):
         return "{:.{}f}".format(value, digit)
     else:
@@ -30,19 +30,19 @@ def latex_bold_string(string):
 
 
 def latex_sci(value, digit=None):
-    return latex_string(__sci__(value, digit))
+    return latex_string(_sci(value, digit))
 
 
 def latex_bold_sci(value, digit=None):
-    return latex_bold_string(__sci__(value, digit))
+    return latex_bold_string(_sci(value, digit))
 
 
 def latex_float(value, digit=None):
-    return latex_string(__float__(value, digit))
+    return latex_string(_float(value, digit))
 
 
 def latex_bold_float(value, digit=None):
-    return latex_bold_string(__float__(value, digit))
+    return latex_bold_string(_float(value, digit))
 
 
 def list_latex_string(string_list):
