@@ -201,8 +201,8 @@ std::vector<T>& operator/=(std::vector<T>& t_vec, const TT& c) {
 //* matrix / c -> matrix
 template <typename T, typename TT>
 std::vector<std::vector<T>> operator/(const std::vector<std::vector<T>>& t_mat, const TT& c) {
-    const int n = t_mat.size();
-    const int m = t_mat[0].size();
+    const unsigned n = t_mat.size();
+    const unsigned m = t_mat[0].size();
     std::vector<std::vector<T>> result;
     result.resize(n, std::vector<T>(m));
     for (unsigned i = 0; i < n; ++i) {
