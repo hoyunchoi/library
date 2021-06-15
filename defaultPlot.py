@@ -63,6 +63,8 @@ mpl.rcParams.update(new_rc_params)
 #* return xFit, yFit, gradient, residual
 
 #* x scale and y scale are log
+
+
 def logFit(x, y, start=None, end=None, offset=0.0):
     if not start:
         start = x[0]
@@ -74,6 +76,8 @@ def logFit(x, y, start=None, end=None, offset=0.0):
     return fitX, fitY, poly[0], residual
 
 #* x scale is linear, y scale is log
+
+
 def linLogFit(x, y, start=None, end=None, offset=0.0):
     if not start:
         start = x[0]
@@ -85,6 +89,8 @@ def linLogFit(x, y, start=None, end=None, offset=0.0):
     return fitX, fitY, poly[0], residual
 
 #* x scale is log, y scale is linear
+
+
 def logLinFit(x, y, start=None, end=None, offset=0.0):
     if not start:
         start = x[0]
@@ -107,27 +113,10 @@ def linFit(x, y, start=None, end=None, offset=0.0):
     fitY = poly[0] * fitX + poly[1] - offset
     return fitX, fitY, poly[0], residual
 
-
-def loglogLine(x0, y0, slope, x1, x2=None, offset=0.0):
-    assert y0 != offset, "At log-log-line, check the y0 and offset"
-    firstY = np.power(x1 / x0, slope) * (y0 - offset)
-    if x2:
-        secondY = np.power(x2 / x0, slope) * (y0 - offset)
-    else:
-        secondY = y0 - offset
-    return firstY, secondY
-
-
-def loglog_trans_y(x1, y1, x2, y2, offset=0.0):
-    newX = x1, x2
-    newY = y1 * np.power(10.0, -offset), y2 * np.power(10.0, -offset)
-    return newX, newY
-
-
-def loglog_trans_x(x1, y1, x2, y2, offset=0.0):
-    newX = x1 * np.power(10.0, -offset), x2 * np.power(10.0, -offset)
-    newY = y1, y2
-    return newX, newY
+#* Draw line at log-log plot with passing (x0, y0), with slope. Another end point is x1
+def loglogLine(x0, y0, slope, x1):
+    y1 = np.power(x1 / x0, slope) * y0
+    return y1
 
 
 if __name__ == "__main__":
